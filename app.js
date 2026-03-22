@@ -185,7 +185,9 @@ if(!isNaN(score1) && !isNaN(score2)){
     const tbl = (players, name, score) => `
       <div class="boxscore-card">
         <div class="boxscore-team">
-          ${escapeHtml(name)}
+          <span style="${name === game.team1 ? team1Style : team2Style}">
+  ${escapeHtml(name)}
+</span>
           ${score !== null ? `<span class="boxscore-score">(${escapeHtml(score)})</span>` : ''}
         </div>
         <div class="boxscore-row header-row"><span>Player</span><span>Points</span><span>Rank</span></div>
