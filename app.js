@@ -210,3 +210,13 @@ document.addEventListener('click', e => {
   if (e.target.matches("[data-close='true']")) els.liveModal.hidden = true;
 });
 loadData();
+let teamAStyle = "";
+let teamBStyle = "";
+
+if(totalA > totalB){
+  teamAStyle = "color:lime;";
+  teamBStyle = "color:red;";
+} else if(totalB > totalA){
+  teamAStyle = "color:red;";
+  teamBStyle = "color:lime;";
+}
