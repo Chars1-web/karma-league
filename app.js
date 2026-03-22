@@ -166,6 +166,21 @@ function renderLiveScoring(liveRows, scheduleRows) {
     const rowEl = event.target.closest('.live-row-item');
     if (!rowEl) return;
     const game = games[Number(rowEl.dataset.index)];
+    let team1Style = "";
+let team2Style = "";
+
+const score1 = parseFloat(game.team1Score);
+const score2 = parseFloat(game.team2Score);
+
+if(!isNaN(score1) && !isNaN(score2)){
+  if(score1 > score2){
+    team1Style = "color:lime;";
+    team2Style = "color:red;";
+  } else if(score2 > score1){
+    team1Style = "color:red;";
+    team2Style = "color:lime;";
+  }
+}
     if (!game) return;
     const tbl = (players, name, score) => `
       <div class="boxscore-card">
