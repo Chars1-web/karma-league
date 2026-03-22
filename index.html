@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Ascended Karma League</title>
+  <title>Ascended Karma League - Live Scores</title>
   <style>
     body {
       background: #0a0a0a;
@@ -9,37 +9,58 @@
       font-family: Arial, sans-serif;
       text-align: center;
       margin: 0;
-      padding: 100px 20px; /* More padding for spacing */
+      padding: 40px 10px;
     }
     h1 {
-      font-size: 42px; /* Big title */
-      margin-bottom: 100px; /* Lots of space below title */
+      font-size: 36px;
+      margin-bottom: 50px;
+    }
+    .card {
+      background: #111;
+      margin: 30px auto; /* center horizontally and add vertical spacing */
+      padding: 30px 20px; /* taller boxes */
+      border-radius: 15px;
+      max-width: 350px; /* not full width, fits nicely on phone */
+      box-shadow: 0 0 10px rgba(255,255,255,0.1);
+      font-size: 20px;
+      line-height: 1.6;
     }
     a {
       display: block;
-      margin: 50px 0; /* Space between links */
-      font-size: 28px; /* Bigger links for tapping */
+      margin-top: 50px;
       color: white;
       text-decoration: none;
-      padding: 15px 0; /* Vertical padding inside link */
-      border: 2px solid white;
-      border-radius: 12px;
-      transition: all 0.2s;
+      font-size: 20px;
     }
     a:hover {
-      background: white;
-      color: black; /* Invert on hover */
-      font-weight: bold;
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
 
-<h1>Ascended Karma League</h1>
+<h1>Live Scores</h1>
 
-<a href="standings.html">Standings</a>
-<a href="rosters.html">Rosters</a>
-<a href="live.html">Live Scores</a>
+<div class="card">
+  Shockers vs Raptors<br>
+  Delta: 12.9K Karma 🔥
+</div>
+
+<div class="card">
+  Lions vs Tacos<br>
+  Player3: 9.5K Karma ⚡
+</div>
+
+<div class="card">
+  Raptors vs Knights<br>
+  Player2: 10.5K Karma 🔥
+</div>
+
+<p>
+  <a href="index.html">Home</a> | 
+  <a href="standings.html">Standings</a> | 
+  <a href="rosters.html">Rosters</a>
+</p>
 
 </body>
 </html>
