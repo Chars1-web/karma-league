@@ -11,40 +11,59 @@
       text-align: center;
       padding: 40px 10px;
     }
-    h1 { font-size: 42px; margin-bottom: 50px; }
+    h1 { 
+      font-size: 48px; 
+      margin-bottom: 50px; 
+    }
     .match {
       background: #111;
       border: 3px solid white;
       border-radius: 20px;
-      padding: 40px 20px;
-      margin: 20px auto;
-      width: 300px;
-      font-size: 28px;
+      padding: 50px 30px;
+      margin: 25px auto;
+      width: 320px;
+      font-size: 32px;
       font-weight: bold;
       cursor: pointer;
       transition: all 0.2s;
     }
     .match:hover { background: #222; }
     .lineup {
-      display: none; /* hidden by default */
+      display: none;
       background: #222;
       border: 2px solid white;
       border-radius: 15px;
-      padding: 20px;
-      margin: 10px auto 30px auto;
-      width: 280px;
-      font-size: 22px;
+      padding: 25px;
+      margin: 15px auto 35px auto;
+      width: 300px;
+      font-size: 24px;
       line-height: 1.5;
     }
-    a { display: block; margin-top:50px; color:white; text-decoration:none; font-size:20px; }
-    a:hover { text-decoration:underline; }
+    .home-link {
+      display: block;
+      margin-top: 60px;
+      font-size: 32px; /* bigger link */
+      color: white;
+      text-decoration: none;
+      border: 3px solid white;
+      border-radius: 15px;
+      padding: 20px 0;
+      width: 220px;
+      margin-left: auto;
+      margin-right: auto;
+      transition: all 0.2s;
+    }
+    .home-link:hover {
+      background: white;
+      color: black;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
 
 <h1>Live Scores</h1>
 
-<!-- Example Matchups -->
 <div class="match" onclick="toggleLineup('match1')">Shockers vs Raptors</div>
 <div class="lineup" id="match1">
   Delta — 12.9K Karma<br>
@@ -66,19 +85,12 @@
   Player9 — 8.2K Karma
 </div>
 
-
-<p>
-  <a href="index.html">Home</a>
-</p>
+<a href="index.html" class="home-link">Home</a>
 
 <script>
   function toggleLineup(id) {
     const element = document.getElementById(id);
-    if (element.style.display === "block") {
-      element.style.display = "none";
-    } else {
-      element.style.display = "block";
-    }
+    element.style.display = (element.style.display === "block") ? "none" : "block";
   }
 </script>
 
