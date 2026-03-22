@@ -1,160 +1,150 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Ascended Karma League - Live Scores</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.6.0/tabletop.min.js"></script>
-
+  <title>Ascended Karma League – Live Scores</title>
   <style>
     body {
       background:#0a0a0a;
       color:white;
-      font-family:Arial;
+      font-family:Arial, sans-serif;
       text-align:center;
       padding:20px;
     }
-
-    h1 {
-      font-size:48px;
-      margin-bottom:30px;
-    }
-
-    /* Match boxes */
-    .match {
+    h1 { font-size:48px; margin-bottom:30px; }
+    .matchup-box {
       background:white;
       color:black;
       border-radius:15px;
-      padding:30px;
+      padding:20px;
       margin:15px auto;
-      width:320px;
-      font-size:28px;
-      font-weight:bold;
+      width:90%;
+      max-width:380px;
+      font-size:24px;
       cursor:pointer;
+      transition:0.2s;
     }
-
-    /* Full screen popup */
+    .matchup-box:hover { transform:scale(1.05); }
     .modal {
-      display:none;
       position:fixed;
-      top:0;
-      left:0;
-      width:100%;
-      height:100%;
-      background:#0a0a0a;
-      z-index:1000;
-      padding:30px;
-      overflow:auto;
+      top:0; left:0;
+      width:100%; height:100%;
+      background:rgba(0,0,0,0.9);
+      display:none;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+      padding:20px;
     }
-
-    .close {
-      position:absolute;
-      top:20px;
-      right:20px;
-      font-size:40px;
-      cursor:pointer;
+    .modal-content {
+      background:white;
+      color:black;
+      border-radius:15px;
+      padding:20px;
+      width:90%;
+      max-width:500px;
+      font-size:20px;
+      margin-bottom:20px;
+      text-align:left;
     }
-
-    .player {
+    .close-btn {
       font-size:28px;
-      margin:10px 0;
-    }
-
-    .total {
-      margin-top:30px;
-      font-size:36px;
-      font-weight:bold;
-    }
-
-    .home-link {
-      display:block;
-      margin-top:40px;
-      font-size:28px;
-      border:2px solid white;
-      padding:15px;
-      width:200px;
-      margin-left:auto;
-      margin-right:auto;
-      text-decoration:none;
+      border:none;
+      background:red;
       color:white;
+      padding:10px 20px;
+      border-radius:10px;
+      cursor:pointer;
     }
   </style>
 </head>
-
 <body>
 
-<h1>Live Scores</h1>
+<h1>Ascended Karma League – Live Scores</h1>
+<div id="matchups"></div>
 
-<div id="matches"></div>
-
-<a href="index.html" class="home-link">Home</a>
-
-<!-- Modal -->
 <div id="modal" class="modal">
-  <div class="close" onclick="closeModal()">✖</div>
-  <div id="modal-content"></div>
+  <div id="modalContent" class="modal-content"></div>
+  <button class="close-btn" onclick="closeModal()">❌ Close</button>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 <script>
-const sheetID = "1BPfds7P3yNy_W3iQEufFzb4AzH56Z1kA";
+const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSe6mW01Q2kgWDNkm-WDUtJziEmKHcpvvP-TKHy84jTjTXE_qIjEQZPDDPb36Xqn5k8t5-kpB6ipq1N/pub?output=csv";
 
-function init() {
-  Tabletop.init({
-    key: sheetID,
-    callback: showData,
-    simpleSheet: true
-  });
-}
+const matchupsDiv = document.getElementById("matchups");
+const modal = document.getElementById("modal");
+const modalContent = document.getElementById("modalContent");
 
-function showData(data) {
-  const container = document.getElementById("matches");
+Papa.parse(sheetURL, {
+  download: true,
+  complete: function(results) {
+    const rows = results.data.map(r => Object.values(r)[0]).filter(r=>r); // get first column
+    let currentTeam = null;
+    let currentPlayers = [];
+    let matchupPairs = [];
 
-  const matches = {};
+    rows.forEach(line => {
+      line = line.trim();
+      if(line.toLowerCase() === "vs") {
+        if(currentTeam) {
+          matchupPairs.push({team: currentTeam, players: currentPlayers});
+          currentTeam = null;
+          currentPlayers = [];
+        }
+      } else if(!currentTeam) {
+        currentTeam = line; // team name
+      } else {
+        let [playerName, karma] = line.split("=");
+        if(karma !== undefined) karma = parseFloat(karma.trim());
+        else karma = 0;
+        currentPlayers.push({name: playerName.trim(), karma: karma});
+      }
+    });
 
-  data.forEach(row => {
-    if (!matches[row.Match]) {
-      matches[row.Match] = [];
+    if(currentTeam) matchupPairs.push({team: currentTeam, players: currentPlayers});
+
+    for(let i=0; i<matchupPairs.length; i+=2){
+      const teamA = matchupPairs[i];
+      const teamB = matchupPairs[i+1];
+      if(!teamB) continue;
+
+      const box = document.createElement("div");
+      box.className = "matchup-box";
+      box.textContent = `${teamA.team} vs ${teamB.team}`;
+
+      box.onclick = () => {
+        let html = `<strong>${teamA.team}</strong><br>`;
+        let totalA = 0;
+        teamA.players.slice(0,5).forEach(p => {
+          let playerKarma = p.karma;
+          if(p.name.toLowerCase().includes("(c)")) playerKarma *= 1.2;
+          html += `${p.name} — ${playerKarma}<br>`;
+          totalA += playerKarma;
+        });
+        html += `<br><strong>Total: ${totalA.toFixed(1)}</strong><br><br>`;
+
+        html += `<strong>${teamB.team}</strong><br>`;
+        let totalB = 0;
+        teamB.players.slice(0,5).forEach(p => {
+          let playerKarma = p.karma;
+          if(p.name.toLowerCase().includes("(c)")) playerKarma *= 1.2;
+          html += `${p.name} — ${playerKarma}<br>`;
+          totalB += playerKarma;
+        });
+        html += `<br><strong>Total: ${totalB.toFixed(1)}</strong>`;
+
+        modalContent.innerHTML = html;
+        modal.style.display = "flex";
+      };
+
+      matchupsDiv.appendChild(box);
     }
-    matches[row.Match].push(row);
-  });
+  }
+});
 
-  Object.keys(matches).forEach(matchName => {
-
-    const matchDiv = document.createElement("div");
-    matchDiv.className = "match";
-    matchDiv.innerText = matchName;
-
-    matchDiv.onclick = () => openModal(matchName, matches[matchName]);
-
-    container.appendChild(matchDiv);
-  });
-}
-
-function openModal(matchName, players) {
-  const modal = document.getElementById("modal");
-  const content = document.getElementById("modal-content");
-
-  let html = `<h1>${matchName}</h1>`;
-
-  let total = 0;
-
-  players.forEach(p => {
-    let num = parseFloat(p.Karma);
-    if (!isNaN(num)) total += num;
-
-    html += `<div class="player">${p.Player} — ${p.Karma}</div>`;
-  });
-
-  html += `<div class="total">Total: ${total.toFixed(1)}K</div>`;
-
-  content.innerHTML = html;
-  modal.style.display = "block";
-}
-
-function closeModal() {
-  document.getElementById("modal").style.display = "none";
-}
-
-window.addEventListener("DOMContentLoaded", init);
+function closeModal(){ modal.style.display = "none"; }
 </script>
 
 </body>
 </html>
+
