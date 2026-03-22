@@ -3,58 +3,13 @@
 <head>
   <title>Ascended Karma League – Live Scores</title>
   <style>
-    body {
-      background:#0a0a0a;
-      color:white;
-      font-family:Arial, sans-serif;
-      text-align:center;
-      padding:20px;
-    }
+    body { background:#0a0a0a; color:white; font-family:Arial,sans-serif; text-align:center; padding:20px; }
     h1 { font-size:48px; margin-bottom:30px; }
-    .matchup-box {
-      background:white;
-      color:black;
-      border-radius:15px;
-      padding:20px;
-      margin:15px auto;
-      width:90%;
-      max-width:380px;
-      font-size:24px;
-      cursor:pointer;
-      transition:0.2s;
-    }
+    .matchup-box { background:white; color:black; border-radius:15px; padding:20px; margin:15px auto; width:90%; max-width:380px; font-size:24px; cursor:pointer; transition:0.2s; }
     .matchup-box:hover { transform:scale(1.05); }
-    .modal {
-      position:fixed;
-      top:0; left:0;
-      width:100%; height:100%;
-      background:rgba(0,0,0,0.9);
-      display:none;
-      justify-content:center;
-      align-items:center;
-      flex-direction:column;
-      padding:20px;
-    }
-    .modal-content {
-      background:white;
-      color:black;
-      border-radius:15px;
-      padding:20px;
-      width:90%;
-      max-width:500px;
-      font-size:20px;
-      margin-bottom:20px;
-      text-align:left;
-    }
-    .close-btn {
-      font-size:28px;
-      border:none;
-      background:red;
-      color:white;
-      padding:10px 20px;
-      border-radius:10px;
-      cursor:pointer;
-    }
+    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; justify-content:center; align-items:center; flex-direction:column; padding:20px; }
+    .modal-content { background:white; color:black; border-radius:15px; padding:20px; width:90%; max-width:500px; font-size:20px; margin-bottom:20px; text-align:left; }
+    .close-btn { font-size:28px; border:none; background:red; color:white; padding:10px 20px; border-radius:10px; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -78,76 +33,60 @@ const modalContent = document.getElementById("modalContent");
 Papa.parse(sheetURL, {
   download: true,
   complete: function(results) {
-    const data = results.data.slice(3); // skip first 3 rows
-    const matchupPairs = [];
-    let currentTeam = null;
-    let currentPlayers = [];
+    const data = results.data;
+    const matchups = [];
 
-    for(let row of data) {
-      for(let cell of row) {
-        if(!cell) continue;
-        cell = cell.toString().trim();
-        if(cell.toLowerCase() === "vs") {
-          if(currentTeam) {
-            matchupPairs.push({team: currentTeam, players: currentPlayers});
-            currentTeam = null;
-            currentPlayers = [];
-          }
-        } else if(!currentTeam) {
-          currentTeam = cell; // team name
-        } else {
-          // player row
-          let [playerName, karma] = cell.split("=");
-          if(karma !== undefined) karma = parseFloat(karma.trim());
-          else karma = 0;
-          currentPlayers.push({name: playerName.trim(), karma: karma});
-        }
-      }
+    // Loop through rows 4–13 (indices 3–12)
+    for (let i = 3; i <= 12; i++) {
+      const row = data[i];
+      if(!row) continue;
+
+      const teamA = row[0]; // column A
+      const opponent = row[6]; // column G
+
+      // Players B–F
+      const playersA = row.slice(1,6).filter(cell => cell && cell.toString().trim() !== "").map(p=>{
+        let [name, karma] = p.split("=");
+        if(karma !== undefined) karma = parseFloat(karma.trim()); else karma=0;
+        return {name: name.trim(), karma: karma};
+      });
+
+      matchups.push({teamA, playersA, opponent});
     }
 
-    if(currentTeam) matchupPairs.push({team: currentTeam, players: currentPlayers});
+    // Remove duplicate matchups (since opponent will also have a row)
+    const displayed = new Set();
 
-    // Create matchup boxes
-    for(let i=0; i<matchupPairs.length; i+=2) {
-      const teamA = matchupPairs[i];
-      const teamB = matchupPairs[i+1];
-      if(!teamB) continue;
+    matchups.forEach(m=>{
+      const key = [m.teamA, m.opponent].sort().join("-");
+      if(displayed.has(key)) return;
+      displayed.add(key);
 
       const box = document.createElement("div");
       box.className = "matchup-box";
-      box.textContent = `${teamA.team} vs ${teamB.team}`;
+      box.textContent = `${m.teamA} vs ${m.opponent}`;
 
       box.onclick = () => {
-        let html = `<strong>${teamA.team}</strong><br>`;
-        let totalA = 0;
-        teamA.players.slice(0,5).forEach(p => {
-          let playerKarma = p.karma;
-          if(p.name.toLowerCase().includes("(c)")) playerKarma *= 1.2;
-          html += `${p.name} — ${playerKarma.toFixed(1)}<br>`;
-          totalA += playerKarma;
+        let html = `<strong>${m.teamA}</strong><br>`;
+        let totalA=0;
+        m.playersA.slice(0,5).forEach(p=>{
+          let karma = p.karma;
+          if(p.name.toLowerCase().includes("(c)")) karma *= 1.2;
+          html += `${p.name} — ${karma.toFixed(1)}<br>`;
+          totalA += karma;
         });
-        html += `<br><strong>Total: ${totalA.toFixed(1)}</strong><br><br>`;
-
-        html += `<strong>${teamB.team}</strong><br>`;
-        let totalB = 0;
-        teamB.players.slice(0,5).forEach(p => {
-          let playerKarma = p.karma;
-          if(p.name.toLowerCase().includes("(c)")) playerKarma *= 1.2;
-          html += `${p.name} — ${playerKarma.toFixed(1)}<br>`;
-          totalB += playerKarma;
-        });
-        html += `<br><strong>Total: ${totalB.toFixed(1)}</strong>`;
+        html += `<br><strong>Total: ${totalA.toFixed(1)}</strong>`;
 
         modalContent.innerHTML = html;
         modal.style.display = "flex";
       };
 
       matchupsDiv.appendChild(box);
-    }
+    });
   }
 });
 
-function closeModal(){ modal.style.display = "none"; }
+function closeModal(){ modal.style.display="none"; }
 </script>
 
 </body>
