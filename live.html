@@ -15,7 +15,14 @@
 <body>
 
 <h1>Ascended Karma League – Live Scores</h1>
-<div id="matchups"></div>
+
+<div id="matchups">
+  <div class="matchup-box" onclick="showMatchup('Dogs', 'Vampires')">Dogs vs Vampires</div>
+  <div class="matchup-box" onclick="showMatchup('Titans', 'Dubs')">Titans vs Dubs</div>
+  <div class="matchup-box" onclick="showMatchup('Bullets', 'Polar Bears')">Bullets vs Polar Bears</div>
+  <div class="matchup-box" onclick="showMatchup('Bloodhawks', 'Karma Chefs')">Bloodhawks vs Karma Chefs</div>
+  <div class="matchup-box" onclick="showMatchup('Ascended', 'Tourists')">Ascended vs Tourists</div>
+</div>
 
 <div id="modal" class="modal">
   <div id="modalContent" class="modal-content"></div>
@@ -24,69 +31,65 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 <script>
-const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSe6mW01Q2kgWDNkm-WDUtJziEmKHcpvvP-TKHy84jTjTXE_qIjEQZPDDPb36Xqn5k8t5-kpB6ipq1N/pub?output=csv";
+const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS_YL3WsvgFtH1JhXgQN2ft-ASzR570T2W_J8jFOhaCqeKzO-CpqjAXkekS4Cm6cQ/pub?output=csv";
 
-const matchupsDiv = document.getElementById("matchups");
-const modal = document.getElementById("modal");
-const modalContent = document.getElementById("modalContent");
+let sheetData = [];
 
+// Load the sheet
 Papa.parse(sheetURL, {
   download: true,
+  header: false,
   complete: function(results) {
-    const data = results.data;
-    const matchups = [];
-
-    // Loop through rows 4–13 (indices 3–12)
-    for (let i = 3; i <= 12; i++) {
-      const row = data[i];
-      if(!row) continue;
-
-      const teamA = row[0]; // column A
-      const opponent = row[6]; // column G
-
-      // Players B–F
-      const playersA = row.slice(1,6).filter(cell => cell && cell.toString().trim() !== "").map(p=>{
-        let [name, karma] = p.split("=");
-        if(karma !== undefined) karma = parseFloat(karma.trim()); else karma=0;
-        return {name: name.trim(), karma: karma};
-      });
-
-      matchups.push({teamA, playersA, opponent});
-    }
-
-    // Remove duplicate matchups (since opponent will also have a row)
-    const displayed = new Set();
-
-    matchups.forEach(m=>{
-      const key = [m.teamA, m.opponent].sort().join("-");
-      if(displayed.has(key)) return;
-      displayed.add(key);
-
-      const box = document.createElement("div");
-      box.className = "matchup-box";
-      box.textContent = `${m.teamA} vs ${m.opponent}`;
-
-      box.onclick = () => {
-        let html = `<strong>${m.teamA}</strong><br>`;
-        let totalA=0;
-        m.playersA.slice(0,5).forEach(p=>{
-          let karma = p.karma;
-          if(p.name.toLowerCase().includes("(c)")) karma *= 1.2;
-          html += `${p.name} — ${karma.toFixed(1)}<br>`;
-          totalA += karma;
-        });
-        html += `<br><strong>Total: ${totalA.toFixed(1)}</strong>`;
-
-        modalContent.innerHTML = html;
-        modal.style.display = "flex";
-      };
-
-      matchupsDiv.appendChild(box);
-    });
+    sheetData = results.data;
   }
 });
 
-function closeModal(){ modal.style.display="none"; }
+// Show matchup modal
+function showMatchup(teamA, teamB) {
+  // Find teamA row
+  const teamARow = sheetData.find(r => r[0] && r[0].trim() === teamA);
+  const teamBRow = sheetData.find(r => r[0] && r[0].trim() === teamB);
+
+  if(!teamARow || !teamBRow){
+    alert("Team data not found in sheet.");
+    return;
+  }
+
+  const playersA = teamARow.slice(1,6).filter(c=>c && c.trim()!=="").map(p=>{
+    let [name, karma] = p.split("=");
+    karma = karma? parseFloat(karma.trim()): 0;
+    if(name.toLowerCase().includes("(c)")) karma *= 1.2;
+    return {name: name.trim(), karma};
+  });
+
+  const playersB = teamBRow.slice(1,6).filter(c=>c && c.trim()!=="").map(p=>{
+    let [name, karma] = p.split("=");
+    karma = karma? parseFloat(karma.trim()): 0;
+    if(name.toLowerCase().includes("(c)")) karma *= 1.2;
+    return {name: name.trim(), karma};
+  });
+
+  let html = `<strong>${teamA}</strong><br>`;
+  let totalA = 0;
+  playersA.forEach(p=>{
+    html += `${p.name} — ${p.karma.toFixed(1)}<br>`;
+    totalA += p.karma;
+  });
+  html += `<br><strong>Total: ${totalA.toFixed(1)}</strong><br><br>`;
+
+  html += `<strong>${teamB}</strong><br>`;
+  let totalB = 0;
+  playersB.forEach(p=>{
+    html += `${p.name} — ${p.karma.toFixed(1)}<br>`;
+    totalB += p.karma;
+  });
+  html += `<br><strong>Total: ${totalB.toFixed(1)}</strong>`;
+
+  document.getElementById("modalContent").innerHTML = html;
+  document.getElementById("modal").style.display="flex";
+}
+
+function closeModal(){ document.getElementById("modal").style.display="none"; }
 </script>
 
 </body>
