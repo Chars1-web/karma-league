@@ -78,37 +78,37 @@ const modalContent = document.getElementById("modalContent");
 Papa.parse(sheetURL, {
   download: true,
   complete: function(results) {
-    // Flatten all columns in each row, skip empty cells, skip first 3 rows
-    const rows = results.data.slice(3)
-      .map(r => Object.values(r).filter(cell => cell && cell.toString().trim() !== ""))
-      .flat();
-
+    const data = results.data.slice(3); // skip first 3 rows
+    const matchupPairs = [];
     let currentTeam = null;
     let currentPlayers = [];
-    let matchupPairs = [];
 
-    rows.forEach(line => {
-      line = line.trim();
-      if(line.toLowerCase() === "vs") {
-        if(currentTeam) {
-          matchupPairs.push({team: currentTeam, players: currentPlayers});
-          currentTeam = null;
-          currentPlayers = [];
+    for(let row of data) {
+      for(let cell of row) {
+        if(!cell) continue;
+        cell = cell.toString().trim();
+        if(cell.toLowerCase() === "vs") {
+          if(currentTeam) {
+            matchupPairs.push({team: currentTeam, players: currentPlayers});
+            currentTeam = null;
+            currentPlayers = [];
+          }
+        } else if(!currentTeam) {
+          currentTeam = cell; // team name
+        } else {
+          // player row
+          let [playerName, karma] = cell.split("=");
+          if(karma !== undefined) karma = parseFloat(karma.trim());
+          else karma = 0;
+          currentPlayers.push({name: playerName.trim(), karma: karma});
         }
-      } else if(!currentTeam) {
-        currentTeam = line; // team name
-      } else {
-        let [playerName, karma] = line.split("=");
-        if(karma !== undefined) karma = parseFloat(karma.trim());
-        else karma = 0;
-        currentPlayers.push({name: playerName.trim(), karma: karma});
       }
-    });
+    }
 
     if(currentTeam) matchupPairs.push({team: currentTeam, players: currentPlayers});
 
     // Create matchup boxes
-    for(let i=0; i<matchupPairs.length; i+=2){
+    for(let i=0; i<matchupPairs.length; i+=2) {
       const teamA = matchupPairs[i];
       const teamB = matchupPairs[i+1];
       if(!teamB) continue;
