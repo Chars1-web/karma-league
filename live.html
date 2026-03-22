@@ -69,7 +69,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 <script>
-const sheetURL = https://docs.google.com/spreadsheets/d/e/2PACX-1vSe6mW01Q2kgWDNkm-WDUtJziEmKHcpvvP-TKHy84jTjTXE_qIjEQZPDDPb36Xqn5k8t5-kpB6ipq1N/pub?output=csv
+const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSe6mW01Q2kgWDNkm-WDUtJziEmKHcpvvP-TKHy84jTjTXE_qIjEQZPDDPb36Xqn5k8t5-kpB6ipq1N/pub?output=csv";
 
 const matchupsDiv = document.getElementById("matchups");
 const modal = document.getElementById("modal");
@@ -78,7 +78,9 @@ const modalContent = document.getElementById("modalContent");
 Papa.parse(sheetURL, {
   download: true,
   complete: function(results) {
-    const rows = results.data.map(r => Object.values(r)[0]).filter(r=>r); // get first column
+    // Skip first 3 rows because first team starts at row 4
+    const rows = results.data.slice(3).map(r => Object.values(r)[0]).filter(r => r);
+
     let currentTeam = null;
     let currentPlayers = [];
     let matchupPairs = [];
@@ -103,6 +105,7 @@ Papa.parse(sheetURL, {
 
     if(currentTeam) matchupPairs.push({team: currentTeam, players: currentPlayers});
 
+    // Create matchup boxes
     for(let i=0; i<matchupPairs.length; i+=2){
       const teamA = matchupPairs[i];
       const teamB = matchupPairs[i+1];
@@ -117,8 +120,8 @@ Papa.parse(sheetURL, {
         let totalA = 0;
         teamA.players.slice(0,5).forEach(p => {
           let playerKarma = p.karma;
-          if(p.name.toLowerCase().includes("(c)")) playerKarma *= 1.2;
-          html += `${p.name} — ${playerKarma}<br>`;
+          if(p.name.toLowerCase().includes("(c)")) playerKarma *= 1.2; // captain bonus
+          html += `${p.name} — ${playerKarma.toFixed(1)}<br>`;
           totalA += playerKarma;
         });
         html += `<br><strong>Total: ${totalA.toFixed(1)}</strong><br><br>`;
@@ -127,8 +130,8 @@ Papa.parse(sheetURL, {
         let totalB = 0;
         teamB.players.slice(0,5).forEach(p => {
           let playerKarma = p.karma;
-          if(p.name.toLowerCase().includes("(c)")) playerKarma *= 1.2;
-          html += `${p.name} — ${playerKarma}<br>`;
+          if(p.name.toLowerCase().includes("(c)")) playerKarma *= 1.2; // captain bonus
+          html += `${p.name} — ${playerKarma.toFixed(1)}<br>`;
           totalB += playerKarma;
         });
         html += `<br><strong>Total: ${totalB.toFixed(1)}</strong>`;
