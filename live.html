@@ -17,6 +17,7 @@
 <h1>Ascended Karma League – Live Scores</h1>
 
 <div id="matchups">
+  <!-- Manual matchup boxes for today -->
   <div class="matchup-box" onclick="showMatchup('Dogs', 'Vampires')">Dogs vs Vampires</div>
   <div class="matchup-box" onclick="showMatchup('Titans', 'Dubs')">Titans vs Dubs</div>
   <div class="matchup-box" onclick="showMatchup('Bullets', 'Polar Bears')">Bullets vs Polar Bears</div>
@@ -31,59 +32,63 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 <script>
-const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS_YL3WsvgFtH1JhXgQN2ft-ASzR570T2W_J8jFOhaCqeKzO-CpqjAXkekS4Cm6cQ/pub?output=csv";
+const sheetURL = "YOUR_CSV_LINK_HERE"; // <-- replace with your published CSV link
 
 let sheetData = [];
 
-// Load the sheet
+// Load the CSV sheet
 Papa.parse(sheetURL, {
   download: true,
   header: false,
   complete: function(results) {
     sheetData = results.data;
+    console.log("Sheet loaded", sheetData);
   }
 });
 
 // Show matchup modal
 function showMatchup(teamA, teamB) {
-  // Find teamA row
-  const teamARow = sheetData.find(r => r[0] && r[0].trim() === teamA);
-  const teamBRow = sheetData.find(r => r[0] && r[0].trim() === teamB);
+  function getLineup(team) {
+    const row = sheetData.find(r => r[0] && r[0].trim() === team);
+    if(!row) return null;
 
-  if(!teamARow || !teamBRow){
-    alert("Team data not found in sheet.");
-    return;
+    const players = row.slice(1,6).filter(c => c && c.trim() !== "").map(p=>{
+      let [name, karma] = p.split("=");
+      karma = karma ? parseFloat(karma.trim()) : 0;
+      if(name.toLowerCase().includes("(c)")) karma *= 1.2;
+      return {name: name.trim(), karma};
+    });
+    return players.length ? players : null;
   }
 
-  const playersA = teamARow.slice(1,6).filter(c=>c && c.trim()!=="").map(p=>{
-    let [name, karma] = p.split("=");
-    karma = karma? parseFloat(karma.trim()): 0;
-    if(name.toLowerCase().includes("(c)")) karma *= 1.2;
-    return {name: name.trim(), karma};
-  });
+  const playersA = getLineup(teamA);
+  const playersB = getLineup(teamB);
 
-  const playersB = teamBRow.slice(1,6).filter(c=>c && c.trim()!=="").map(p=>{
-    let [name, karma] = p.split("=");
-    karma = karma? parseFloat(karma.trim()): 0;
-    if(name.toLowerCase().includes("(c)")) karma *= 1.2;
-    return {name: name.trim(), karma};
-  });
+  let html = "";
 
-  let html = `<strong>${teamA}</strong><br>`;
-  let totalA = 0;
-  playersA.forEach(p=>{
-    html += `${p.name} — ${p.karma.toFixed(1)}<br>`;
-    totalA += p.karma;
-  });
-  html += `<br><strong>Total: ${totalA.toFixed(1)}</strong><br><br>`;
+  if(playersA){
+    let totalA=0;
+    html += `<strong>${teamA}</strong><br>`;
+    playersA.forEach(p=>{
+      html += `${p.name} — ${p.karma.toFixed(1)}<br>`;
+      totalA += p.karma;
+    });
+    html += `<br><strong>Total: ${totalA.toFixed(1)}</strong><br><br>`;
+  } else {
+    html += `<strong>${teamA}</strong><br>Lineup Pending<br><br>`;
+  }
 
-  html += `<strong>${teamB}</strong><br>`;
-  let totalB = 0;
-  playersB.forEach(p=>{
-    html += `${p.name} — ${p.karma.toFixed(1)}<br>`;
-    totalB += p.karma;
-  });
-  html += `<br><strong>Total: ${totalB.toFixed(1)}</strong>`;
+  if(playersB){
+    let totalB=0;
+    html += `<strong>${teamB}</strong><br>`;
+    playersB.forEach(p=>{
+      html += `${p.name} — ${p.karma.toFixed(1)}<br>`;
+      totalB += p.karma;
+    });
+    html += `<br><strong>Total: ${totalB.toFixed(1)}</strong>`;
+  } else {
+    html += `<strong>${teamB}</strong><br>Lineup Pending`;
+  }
 
   document.getElementById("modalContent").innerHTML = html;
   document.getElementById("modal").style.display="flex";
