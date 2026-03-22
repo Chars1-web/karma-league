@@ -1,18 +1,87 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Karma League - Live Scores</title>
+  <title>Ascended Karma League - Live Scores</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.6.0/tabletop.min.js"></script>
+  <style>
+    body {
+      background: #0a0a0a;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px 10px;
+    }
+    h1 { font-size: 42px; margin-bottom: 50px; }
+    .match {
+      background: #111;
+      border: 3px solid white;
+      border-radius: 20px;
+      padding: 40px 20px;
+      margin: 20px auto;
+      width: 300px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .match:hover { background: #222; }
+    .lineup {
+      display: none; /* hidden by default */
+      background: #222;
+      border: 2px solid white;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 10px auto 30px auto;
+      width: 280px;
+      font-size: 22px;
+      line-height: 1.5;
+    }
+    a { display: block; margin-top:50px; color:white; text-decoration:none; font-size:20px; }
+    a:hover { text-decoration:underline; }
+  </style>
 </head>
-<body style="background:black; color:white; font-family:Arial; text-align:center;">
-<h1 style="color:gold;">Karma League - Live Scores</h1>
+<body>
 
-<div style="background:#111; margin:10px; padding:15px; border-radius:10px;">
-  <p>Shockers vs Raptors: Delta 10K Karma 🔥</p>
-</div>
-<div style="background:#111; margin:10px; padding:15px; border-radius:10px;">
-  <p>Lions vs Tacos: Player3 9.5K Karma ⚡</p>
+<h1>Live Scores</h1>
+
+<!-- Example Matchups -->
+<div class="match" onclick="toggleLineup('match1')">Shockers vs Raptors</div>
+<div class="lineup" id="match1">
+  Delta — 12.9K Karma<br>
+  Player5 — 9.3K Karma<br>
+  Player6 — 8.7K Karma
 </div>
 
-<p><a href="index.html" style="color:gold;">Home</a> | <a href="standings.html" style="color:gold;">Standings</a> | <a href="rosters.html" style="color:gold;">Rosters</a></p>
+<div class="match" onclick="toggleLineup('match2')">Lions vs Tacos</div>
+<div class="lineup" id="match2">
+  Player3 — 10.1K Karma<br>
+  Player4 — 8.9K Karma<br>
+  Player7 — 7.5K Karma
+</div>
+
+<div class="match" onclick="toggleLineup('match3')">Raptors vs Knights</div>
+<div class="lineup" id="match3">
+  Player2 — 11.5K Karma<br>
+  Player8 — 9.7K Karma<br>
+  Player9 — 8.2K Karma
+</div>
+
+<p>
+  <a href="index.html">Home</a> | 
+  <a href="standings.html">Standings</a> | 
+  <a href="rosters.html">Rosters</a>
+</p>
+
+<script>
+  function toggleLineup(id) {
+    const element = document.getElementById(id);
+    if (element.style.display === "block") {
+      element.style.display = "none";
+    } else {
+      element.style.display = "block";
+    }
+  }
+</script>
+
 </body>
 </html>
