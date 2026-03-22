@@ -1,289 +1,45 @@
-const LIVE_SCORING_URL = "/api/sheet?name=live-scoring";
-const SCHEDULE_URL = "/api/sheet?name=schedule";
-const els = {
-  liveRow: document.getElementById("live-scoring"),
-  liveModal: document.getElementById("live-modal"),
-  liveDetails: document.getElementById("live-details"),
-};
-function parseCSV(text) {
-  const rows = [];
-  let row = [];
-  let value = "";
-  let inQuotes = false;
-  for (let i = 0; i < text.length; i += 1) {
-    const char = text[i];
-    const next = text[i + 1];
-    if (char === '"') {
-      if (inQuotes && next === '"') {
-        value += '"';
-        i += 1;
-      } else {
-        inQuotes = !inQuotes;
-      }
-      continue;
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ascended Karma League – Live Scores</title>
+  <style>
+    body { background:#0a0a0a; color:white; font-family:Arial,sans-serif; text-align:center; padding:20px; }
+    h1 { font-size:48px; margin-bottom:30px; }
+    .live-list { display:flex; flex-direction:column; align-items:center; }
+    .live-row-item {
+      background:white; color:black; border-radius:15px; padding:20px;
+      margin:15px auto; width:90%; max-width:380px; font-size:24px;
+      cursor:pointer; transition:0.2s;
     }
-    if (char === "," && !inQuotes) {
-      row.push(value.trim());
-      value = "";
-      continue;
+    .live-row-item:hover { transform:scale(1.05); }
+    .live-matchup { display:flex; justify-content:center; align-items:center; gap:12px; }
+    /* Modal */
+    #live-modal {
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.9); display:flex; flex-direction:column;
+      justify-content:flex-start; align-items:center;
+      padding:20px; box-sizing:border-box; overflow-y:auto;
     }
-    if ((char === "\n" || char === "\r") && !inQuotes) {
-      if (char === "\r" && next === "\n") i += 1;
-      row.push(value.trim());
-      if (row.length > 1 || row[0] !== "") rows.push(row);
-      row = [];
-      value = "";
-      continue;
+    #live-modal[hidden] { display:none; }
+    #live-details { width:100%; max-width:500px; margin-top:10px; }
+    .boxscore-card { background:white; color:black; border-radius:15px; padding:20px; margin-bottom:20px; text-align:left; }
+    .boxscore-team { font-size:22px; font-weight:bold; margin-bottom:10px; }
+    .boxscore-row { display:grid; grid-template-columns:2fr 1fr 1fr; padding:4px 0; border-bottom:1px solid #eee; font-size:16px; }
+    .boxscore-row:first-of-type { font-weight:bold; }
+    .boxscore-empty { color:#999; font-style:italic; }
+    .close-btn {
+      font-size:28px; border:none; background:red; color:white;
+      padding:10px 20px; border-radius:10px; cursor:pointer; margin-bottom:10px;
     }
-    value += char;
-  }
-  if (value.length || row.length) {
-    row.push(value.trim());
-    rows.push(row);
-  }
-  return rows;
-}
-function colToIndex(letter) {
-  return letter.toUpperCase().charCodeAt(0) - 65;
-}
-function parseRange(range) {
-  const match = range.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/i);
-  if (!match) return null;
-  const [, startCol, startRow, endCol, endRow] = match;
-  return {
-    startCol: colToIndex(startCol),
-    endCol: colToIndex(endCol),
-    startRow: Number(startRow) - 1,
-    endRow: Number(endRow) - 1,
-  };
-}
-function sliceRange(rows, range) {
-  const parsed = parseRange(range);
-  if (!parsed) return [];
-  return rows
-    .slice(parsed.startRow, parsed.endRow + 1)
-    .map((row) => row.slice(parsed.startCol, parsed.endCol + 1));
-}
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-function normalizeTeamName(name) {
-  return String(name || "")
-    .replace(/\([^)]*\)/g, "")
-    .replace(/[:*]/g, "")
-    .replace(/[^a-zA-Z0-9 ]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/^bullets$/i, "storm")
-    .toLowerCase();
-}
-function extractLeagueDay(rows) {
-  const row = rows.find(
-    (r) =>
-      String(r[0] || "").includes("League Day") ||
-      String(r[1] || "").includes("League Day")
-  );
-  if (!row) return "";
-  const cell = String(row[0] || row[1] || "");
-  const parts = cell.split(":");
-  return parts.length > 1 ? parts[1].trim() : cell.trim();
-}
-function getLiveScheduleIndexes(scheduleRows) {
-  const headers = (scheduleRows[0] || []).map((h) =>
-    String(h || "").trim().toLowerCase()
-  );
-  const findIdx = (checks) =>
-    headers.findIndex((h) => checks.some((check) => h.includes(check)));
-  let date = findIdx(["date"]);
-  let team1 = findIdx(["team 1", "team1", "away"]);
-  let team2 = findIdx(["team 2", "team2", "home"]);
-  if (team1 === -1 || team2 === -1) {
-    if ((scheduleRows[0] || []).length >= 4) {
-      if (date === -1) date = 1;
-      if (team1 === -1) team1 = 2;
-      if (team2 === -1) team2 = 3;
-    } else {
-      if (date === -1) date = 0;
-      if (team1 === -1) team1 = 1;
-      if (team2 === -1) team2 = 2;
-    }
-  }
-  return { date, team1, team2 };
-}
-function parseLiveGames(rows) {
-  const LIVE_GAME_RANGES = [
-    { range: "A5:G11", format: "standard" },
-    { range: "A13:G19", format: "standard" },
-    { range: "A21:G27", format: "standard" },
-    { range: "A29:G35", format: "standard" },
-    { range: "A37:G43", format: "standard" },
-    { range: "A45:G51", format: "standard" },
-    { range: "A53:G59", format: "standard" },
-    { range: "A61:G67", format: "standard" },
-    { range: "A69:G75", format: "standard" },
-    { range: "A77:G83", format: "standard" },
-    { range: "A85:G91", format: "standard" },
-    { range: "A93:G99", format: "standard" },
-    { range: "A101:G107", format: "standard" },
-    { range: "A109:G115", format: "standard" },
-    { range: "A117:G122", format: "standard" },
-  ];
-  const games = [];
-  LIVE_GAME_RANGES.forEach(({ range, format }) => {
-    const block = sliceRange(rows, range);
-    if (!block.length) return;
-    let team1 = "";
-    let team2 = "";
-    let headerIndex = 0;
-    if (format === "compact") {
-      const header = block[0] || [];
-      const headerA = String(header[0] || "").trim();
-      const headerD = String(header[3] || "").trim();
-      const combinedHeader = [headerA, headerD].filter(Boolean).join(" ");
-      const vsMatch = combinedHeader.match(/(.+?)\s+vs\s+(.+)/i);
-      if (vsMatch) {
-        team1 = String(vsMatch[1] || "").trim();
-        team2 = String(vsMatch[2] || "").trim();
-      } else {
-        team1 = headerA;
-        team2 = headerD;
-      }
-      if (team1.startsWith("@") || team2.startsWith("@")) {
-        team1 = "";
-        team2 = "";
-      }
-    } else {
-      let header = block[0] || [];
-      for (let i = 0; i < block.length; i += 1) {
-        const candidate = block[i] || [];
-        const left = String(candidate[0] || "").trim();
-        const right = String(candidate[4] || "").trim();
-        const looksHeader =
-          left &&
-          right &&
-          !left.startsWith("@") &&
-          !right.startsWith("@") &&
-          !left.includes("League Day") &&
-          !right.includes("League Day");
-        if (looksHeader) {
-          header = candidate;
-          headerIndex = i;
-          break;
-        }
-      }
-      team1 = String(header[0] || "").trim();
-      team2 = String(header[4] || "").trim();
-    }
-    if (!team1 || !team2) return;
-    const players = block
-      .slice(headerIndex + 1)
-      .filter((row) => String(row[0] || row[4] || "").trim() !== "");
-    const team1Players = players.map((row) => ({
-      player: row[0] || "",
-      points: row[1] || "",
-      rank: row[2] || "",
-    }));
-    const team2Players = players.map((row) => ({
-      player: row[4] || "",
-      points: row[5] || "",
-      rank: row[6] || "",
-    }));
-    games.push({
-      team1,
-      team2,
-      key: `${normalizeTeamName(team1)}|${normalizeTeamName(team2)}`,
-      team1Players,
-      team2Players,
-    });
-  });
-  return games;
-}
-function renderLiveScoring(liveRows, scheduleRows) {
-  if (!liveRows.length) {
-    els.liveRow.textContent = "No live scoring available.";
-    return;
-  }
-  const leagueDay = extractLeagueDay(liveRows);
-  const liveGames = parseLiveGames(liveRows);
-  const liveMap = new Map(liveGames.map((g) => [g.key, g]));
-  const idx = getLiveScheduleIndexes(scheduleRows);
-  const games = scheduleRows
-    .slice(1)
-    .filter((row) => String(row[idx.date] || "").trim() === leagueDay)
-    .map((row) => {
-      const team1 = String(row[idx.team1] || "").trim();
-      const team2 = String(row[idx.team2] || "").trim();
-      const key = `${normalizeTeamName(team1)}|${normalizeTeamName(team2)}`;
-      const live = liveMap.get(key) || null;
-      return {
-        team1,
-        team2,
-        team1Players: live ? live.team1Players : [],
-        team2Players: live ? live.team2Players : [],
-      };
-    });
-  if (!games.length) {
-    els.liveRow.textContent = "No live games found for this day.";
-    return;
-  }
-  els.liveRow.innerHTML = games
-    .map(
-      (g, i) => `
-      <div class="live-row-item" data-index="${i}">
-        <strong>${escapeHtml(g.team1)}</strong> vs <strong>${escapeHtml(g.team2)}</strong>
-      </div>
-    `
-    )
-    .join("");
-  els.liveRow.onclick = (e) => {
-    const card = e.target.closest(".live-row-item");
-    if (!card) return;
-    const game = games[Number(card.dataset.index)];
-    if (!game) return;
-    const renderTeam = (name, players) => `
-      <div class="boxscore-card">
-        <h3>${escapeHtml(name)}</h3>
-        <div class="boxscore-row"><span>Player</span><span>Points</span><span>Rank</span></div>
-        ${players
-          .map(
-            (p) => `
-          <div class="boxscore-row">
-            <span>${escapeHtml(p.player)}</span>
-            <span>${escapeHtml(p.points)}</span>
-            <span>${escapeHtml(p.rank)}</span>
-          </div>
-        `
-          )
-          .join("")}
-      </div>
-    `;
-    els.liveDetails.innerHTML = `
-      ${renderTeam(game.team1, game.team1Players)}
-      ${renderTeam(game.team2, game.team2Players)}
-    `;
-    els.liveModal.hidden = false;
-  };
-}
-async function fetchSheet(url) {
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-  return parseCSV(await res.text());
-}
-async function loadLiveScoring() {
-  const [liveRows, scheduleRows] = await Promise.all([
-    fetchSheet(LIVE_SCORING_URL),
-    fetchSheet(SCHEDULE_URL),
-  ]);
-  renderLiveScoring(liveRows, scheduleRows);
-}
-document.addEventListener("click", (e) => {
-  if (e.target.matches("[data-close='true']")) {
-    els.liveModal.hidden = true;
-  }
-});
-loadLiveScoring();
+  </style>
+</head>
+<body>
+<h1>Ascended Karma League – Live Scores</h1>
+<div id="live-scoring"><p>Loading...</p></div>
+<div id="live-modal" hidden>
+  <button class="close-btn" data-close="true">❌ Close</button>
+  <div id="live-details"></div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
