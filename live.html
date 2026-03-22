@@ -8,11 +8,14 @@
     .live-list { display:flex; flex-direction:column; align-items:center; }
     .live-row-item {
       background:white; color:black; border-radius:15px; padding:20px;
-      margin:15px auto; width:90%; max-width:380px; font-size:24px;
+      margin:15px auto; width:90%; max-width:420px; font-size:22px;
       cursor:pointer; transition:0.2s;
     }
     .live-row-item:hover { transform:scale(1.05); }
-    .live-matchup { display:flex; justify-content:center; align-items:center; gap:12px; }
+    .live-matchup { display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; }
+    .team-name { display:flex; align-items:center; gap:6px; }
+    .team-score { font-size:18px; color:#555; font-weight:normal; }
+    .vs { font-size:16px; color:#888; }
     /* Modal */
     #live-modal {
       position:fixed; top:0; left:0; width:100%; height:100%;
@@ -23,9 +26,10 @@
     #live-modal[hidden] { display:none; }
     #live-details { width:100%; max-width:500px; margin-top:10px; }
     .boxscore-card { background:white; color:black; border-radius:15px; padding:20px; margin-bottom:20px; text-align:left; }
-    .boxscore-team { font-size:22px; font-weight:bold; margin-bottom:10px; }
+    .boxscore-team { font-size:22px; font-weight:bold; margin-bottom:10px; display:flex; align-items:center; gap:10px; }
+    .boxscore-score { font-size:18px; color:#555; font-weight:normal; }
     .boxscore-row { display:grid; grid-template-columns:2fr 1fr 1fr; padding:4px 0; border-bottom:1px solid #eee; font-size:16px; }
-    .boxscore-row:first-of-type { font-weight:bold; }
+    .header-row { font-weight:bold; }
     .boxscore-empty { color:#999; font-style:italic; }
     .close-btn {
       font-size:28px; border:none; background:red; color:white;
@@ -37,12 +41,9 @@
 <h1>Ascended Karma League – Live Scores</h1>
 <div id="live-scoring"><p>Loading...</p></div>
 <div id="live-modal" hidden>
-  <button class="close-btn" data-close="true">Close</button>
+  <button class="close-btn" data-close="true">❌ Close</button>
   <div id="live-details"></div>
 </div>
 <script src="app.js"></script>
-
-<a href="index.html"  style="color:white;"class="box">Home</a>
-
 </body>
 </html>
