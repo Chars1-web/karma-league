@@ -6,47 +6,35 @@
     body { background:#0a0a0a; color:white; font-family:Arial,sans-serif; text-align:center; padding:20px; }
     h1 { font-size:48px; margin-bottom:40px; }
     .live-list { display:flex; flex-direction:column; align-items:center; }
-   .live-row-item {
-  background:white; 
-  color:black; 
-  border-radius:20px; 
-  padding:30px;       /* bigger padding */
-  margin:20px auto;   /* more space between boxes */
-  width:95%;          /* almost full width */
-  max-width:600px;    /* bigger max width */
-  font-size:26px;     /* larger text */
-  cursor:pointer; 
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 0 10px rgba(255,255,255,0.1); /* subtle shadow */
-}
+    .live-row-item {
+      background:white; color:black; border-radius:15px; padding:20px;
+      margin:15px auto; width:90%; max-width:420px; font-size:22px;
+      cursor:pointer; transition:0.2s;
+    }
     .live-row-item:hover { transform:scale(1.05); }
     .live-matchup { display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; }
     .team-name { display:flex; align-items:center; gap:6px; }
     .team-score { font-size:18px; color:#555; font-weight:normal; }
     .vs { font-size:16px; color:#888; }
     /* Modal */
-   #live-modal {
-  position: fixed;
-  top: 0; 
-  left: 0; 
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.95); /* slightly darker */
-  display: flex;
-  flex-direction: column;
-  justify-content: center; /* center vertically */
-  align-items: center;
-  padding: 10px;
-  box-sizing: border-box;
-  overflow-y: auto;
-  z-index: 1000;
-}
+    #live-modal {
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.9); display:flex; flex-direction:column;
+      justify-content:flex-start; align-items:center;
+      padding:20px; box-sizing:border-box; overflow-y:auto;
+    }
     #live-modal[hidden] { display:none; }
-#live-details { 
-  width: 100%; 
-  max-width: 500px; 
-  margin-top: 10px; 
-}
+    #live-details { width:100%; max-width:500px; margin-top:10px; }
+    .boxscore-card { background:white; color:black; border-radius:15px; padding:20px; margin-bottom:20px; text-align:left; }
+    .boxscore-team { font-size:22px; font-weight:bold; margin-bottom:10px; display:flex; align-items:center; gap:10px; }
+    .boxscore-score { font-size:18px; color:#555; font-weight:normal; }
+    .boxscore-row { display:grid; grid-template-columns:2fr 1fr 1fr; padding:4px 0; border-bottom:1px solid #eee; font-size:16px; }
+    .header-row { font-weight:bold; }
+    .boxscore-empty { color:#999; font-style:italic; }
+    .close-btn {
+      font-size:28px; border:none; background:red; color:white;
+      padding:10px 20px; border-radius:10px; cursor:pointer; margin-bottom:10px;
+    }
   <style>
   body { background:#0a0a0a; color:white; }
 
@@ -55,28 +43,8 @@
     margin-top:20px;
     font-size:24px;
     padding:12px 25px;
+    background:white;
     background:gold;
     color:black;
     border-radius:12px;
     text-decoration:none;
-  }
-</style>
-</head>
-<body>
-<h1>Ascended Karma League – Live Scores</h1>
-<div id="live-scoring"><p>Loading...</p></div>
-<div id="live-modal" hidden>
-  <button class="close-btn" data-close="true">Close</button>
-  <div id="live-details"></div>
-</div>
-<script src="app.js"></script>
-
-
-
-      
-<div id="teamBox" class="team-box"></div>
-
-<a href="index.html" class="home-link">Home</a>
-
-</body>
-</html>
