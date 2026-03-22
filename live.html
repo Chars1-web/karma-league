@@ -78,8 +78,10 @@ const modalContent = document.getElementById("modalContent");
 Papa.parse(sheetURL, {
   download: true,
   complete: function(results) {
-    // Skip first 3 rows because first team starts at row 4
-    const rows = results.data.slice(3).map(r => Object.values(r)[0]).filter(r => r);
+    // Flatten all columns in each row, skip empty cells, skip first 3 rows
+    const rows = results.data.slice(3)
+      .map(r => Object.values(r).filter(cell => cell && cell.toString().trim() !== ""))
+      .flat();
 
     let currentTeam = null;
     let currentPlayers = [];
@@ -120,7 +122,7 @@ Papa.parse(sheetURL, {
         let totalA = 0;
         teamA.players.slice(0,5).forEach(p => {
           let playerKarma = p.karma;
-          if(p.name.toLowerCase().includes("(c)")) playerKarma *= 1.2; // captain bonus
+          if(p.name.toLowerCase().includes("(c)")) playerKarma *= 1.2;
           html += `${p.name} — ${playerKarma.toFixed(1)}<br>`;
           totalA += playerKarma;
         });
@@ -130,7 +132,7 @@ Papa.parse(sheetURL, {
         let totalB = 0;
         teamB.players.slice(0,5).forEach(p => {
           let playerKarma = p.karma;
-          if(p.name.toLowerCase().includes("(c)")) playerKarma *= 1.2; // captain bonus
+          if(p.name.toLowerCase().includes("(c)")) playerKarma *= 1.2;
           html += `${p.name} — ${playerKarma.toFixed(1)}<br>`;
           totalB += playerKarma;
         });
@@ -150,4 +152,3 @@ function closeModal(){ modal.style.display = "none"; }
 
 </body>
 </html>
-
