@@ -42,17 +42,17 @@
   z-index: 1000;
 }
     #live-modal[hidden] { display:none; }
-    #live-details { width:100%; max-width:500px; margin-top:10px; }
-    .boxscore-card { background:white; color:black; border-radius:15px; padding:20px; margin-bottom:20px; text-align:left; }
-    .boxscore-team { font-size:22px; font-weight:bold; margin-bottom:10px; display:flex; align-items:center; gap:10px; }
-    .boxscore-score { font-size:18px; color:#555; font-weight:normal; }
-    .boxscore-row { display:grid; grid-template-columns:2fr 1fr 1fr; padding:4px 0; border-bottom:1px solid #eee; font-size:16px; }
-    .header-row { font-weight:bold; }
-    .boxscore-empty { color:#999; font-style:italic; }
-    .close-btn {
-      font-size:28px; border:none; background:red; color:white;
-      padding:10px 20px; border-radius:10px; cursor:pointer; margin-bottom:10px;
-    }
+ #live-details {
+  width: 95%;           /* almost full width */
+  max-width: 900px;     /* bigger than before */
+  background: white;
+  color: black;
+  border-radius: 20px;
+  padding: 25px;
+  font-size: 20px;
+  text-align: left;
+  box-shadow: 0 0 30px rgba(255,255,255,0.2);
+}
   <style>
   body { background:#0a0a0a; color:white; }
 
