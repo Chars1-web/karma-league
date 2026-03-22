@@ -8,7 +8,7 @@
     .matchup-box { background:white; color:black; border-radius:15px; padding:20px; margin:15px auto; width:90%; max-width:380px; font-size:24px; cursor:pointer; transition:0.2s; }
     .matchup-box:hover { transform:scale(1.05); }
     .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; justify-content:center; align-items:center; flex-direction:column; padding:20px; }
-    .modal-content { background:white; color:black; border-radius:15px; padding:20px; width:90%; max-width:500px; font-size:20px; margin-bottom:20px; text-align:left; }
+    .modal-content { background:white; color:black; border-radius:15px; padding:20px; width:90%; max-width:500px; font-size:20px; margin-bottom:20px; text-align:left; overflow-y:auto; max-height:90%; }
     .close-btn { font-size:28px; border:none; background:red; color:white; padding:10px 20px; border-radius:10px; cursor:pointer; }
   </style>
 </head>
@@ -32,32 +32,36 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 <script>
-const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX‑…/pub?gid=0&single=true&output=csv"; // <-- replace with your published CSV link
+const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS_YL3WsvgFtH1JhXgQN2ft-ASzR570T2W_J8jFOhaCqeKzO-CpqjAXkekS4Cm6cQ/pub?output=csv"; // your In Progress CSV
 
 let sheetData = [];
 
-// Load the CSV sheet
+// Load CSV sheet
 Papa.parse(sheetURL, {
   download: true,
   header: false,
+  skipEmptyLines: true,
   complete: function(results) {
     sheetData = results.data;
-    console.log("Sheet loaded", sheetData);
+    console.log("Sheet loaded:", sheetData);
   }
 });
 
 // Show matchup modal
 function showMatchup(teamA, teamB) {
   function getLineup(team) {
-    const row = sheetData.find(r => r[0] && r[0].trim() === team);
+    const row = sheetData.find(r => r[0] && r[0].trim().toLowerCase() === team.trim().toLowerCase());
     if(!row) return null;
 
-    const players = row.slice(1,6).filter(c => c && c.trim() !== "").map(p=>{
-      let [name, karma] = p.split("=");
-      karma = karma ? parseFloat(karma.trim()) : 0;
-      if(name.toLowerCase().includes("(c)")) karma *= 1.2;
-      return {name: name.trim(), karma};
-    });
+    const players = row.slice(1,6)
+      .filter(c => c && c.trim() !== "")
+      .map(p => {
+        let [name, karma] = p.split("=");
+        karma = karma ? parseFloat(karma.trim()) : 0;
+        if(name.toLowerCase().includes("(c)")) karma *= 1.2;
+        return {name: name.trim(), karma};
+      });
+
     return players.length ? players : null;
   }
 
