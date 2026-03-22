@@ -25,12 +25,22 @@
     .team-score { font-size:18px; color:#555; font-weight:normal; }
     .vs { font-size:16px; color:#888; }
     /* Modal */
-    #live-modal {
-      position:fixed; top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.9); display:flex; flex-direction:column;
-      justify-content:flex-start; align-items:center;
-      padding:20px; box-sizing:border-box; overflow-y:auto;
-    }
+   #live-modal {
+  position: fixed;
+  top: 0; 
+  left: 0; 
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.95); /* slightly darker */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* center vertically */
+  align-items: center;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  z-index: 1000;
+}
     #live-modal[hidden] { display:none; }
     #live-details { width:100%; max-width:500px; margin-top:10px; }
     .boxscore-card { background:white; color:black; border-radius:15px; padding:20px; margin-bottom:20px; text-align:left; }
