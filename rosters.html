@@ -1,20 +1,115 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Karma League - Rosters</title>
+  <title>Ascended Karma League - Rosters</title>
+  <style>
+    body {
+      background:#0a0a0a;
+      color:white;
+      font-family:Arial, sans-serif;
+      text-align:center;
+      padding:20px;
+    }
+
+    h1 {
+      font-size:48px;
+      margin-bottom:30px;
+    }
+
+    select {
+      font-size:24px;
+      padding:10px;
+      border-radius:10px;
+      margin-bottom:30px;
+    }
+
+    .team-box {
+      background:white;
+      color:black;
+      border-radius:15px;
+      padding:20px;
+      margin:0 auto;
+      width:90%;
+      max-width:400px;
+      font-size:22px;
+      display:none; /* hidden until a team is selected */
+    }
+
+    .team-name {
+      font-weight:bold;
+      font-size:28px;
+      margin-bottom:15px;
+    }
+
+    .player {
+      margin:5px 0;
+    }
+
+    .home-link {
+      display:block;
+      margin-top:40px;
+      font-size:24px;
+      border:2px solid white;
+      padding:10px;
+      width:180px;
+      margin-left:auto;
+      margin-right:auto;
+      text-decoration:none;
+      color:white;
+    }
+  </style>
 </head>
-<body style="background:black; color:white; font-family:Arial; text-align:center;">
-<h1 style="color:white;">Karma League - Rosters</h1>
+<body>
 
-<table style="width:100%; border:1px solid #333; border-collapse:collapse;">
-<tr style="background:#111;">
-  <th>Team</th><th>Player</th><th>Position</th><th>Karma</th>
-</tr>
-<tr style="background:#222;"><td>Shockers</td><td>Delta</td><td>QB</td><td>12,450</td></tr>
-<tr style="background:#222;"><td>Raptors</td><td>Player2</td><td>WR</td><td>10,200</td></tr>
-<tr style="background:#222;"><td>Lions</td><td>Player3</td><td>DB</td><td>9,500</td></tr>
-</table>
+<h1>League Rosters</h1>
 
-<p><a href="index.html" style="color:gold;">Home</a> | <a href="standings.html" style="color:gold;">Standings</a> | <a href="live.html" style="color:gold;">Live Scores</a></p>
+<select id="teamSelect">
+  <option value="">Select a team</option>
+</select>
+
+<div id="teamBox" class="team-box"></div>
+
+<a href="index.html" class="home-link">Home</a>
+
+<script>
+  // Example roster data
+  const rosters = {
+    "Dogs": ["Delta", "Player2", "Player5", "Player6", "Player7"],
+    "Vampires": ["Player3", "Player4", "Player8", "Player9", "Player10"],
+    "Titans": ["Player11", "Player12", "Player13", "Player14", "Player15"],
+    "Dubs": ["Player16", "Player17", "Player18", "Player19", "Player20"],
+    "Bullets": ["Player21", "Player22", "Player23", "Player24", "Player25"]
+    // Add all your other teams here
+  };
+
+  const select = document.getElementById("teamSelect");
+  const box = document.getElementById("teamBox");
+
+  // Populate dropdown
+  for (let team in rosters) {
+    const option = document.createElement("option");
+    option.value = team;
+    option.text = team;
+    select.appendChild(option);
+  }
+
+  // Show roster when a team is selected
+  select.addEventListener("change", () => {
+    const team = select.value;
+    if (!team) {
+      box.style.display = "none";
+      return;
+    }
+
+    let html = `<div class="team-name">${team}</div>`;
+    rosters[team].forEach(player => {
+      html += `<div class="player">${player}</div>`;
+    });
+
+    box.innerHTML = html;
+    box.style.display = "block";
+  });
+</script>
+
 </body>
 </html>
