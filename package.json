@@ -1,0 +1,13 @@
+{
+  "name": "karma-league",
+  "version": "1.0.0",
+  "description": "Ascended Karma League",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'No dev server configured'",
+    "build": "echo 'Static HTML project, no build needed'"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^1.1.1"
+  }
+}
