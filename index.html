@@ -41,8 +41,30 @@
       color: black;
       cursor: pointer;
     }
+    .spacer {
+      flex: 1;
+    }
+    .box-small {
+      background: #111;
+      color: white;
+      border: 2px solid white;
+      border-radius: 12px;
+      padding: 14px 32px;
+      font-size: 16px;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.2s;
+      margin-bottom: 16px;
+    }
+    .box-small:hover {
+      background: white;
+      color: black;
+      cursor: pointer;
+    }
     footer {
-      margin-top: auto; /* pushes it to the bottom */
       font-size: 18px;
       color: #aaa;
       padding: 20px 0;
@@ -51,14 +73,14 @@
 </head>
 <body>
 
-<h1>Ascended Karma League</h1>
+  <h1>Ascended Karma League</h1>
 
-<a href="live.html" class="box">Live Scores</a>
+  <a href="live.html" class="box">Live Scores</a>
 
+  <div class="spacer"></div>
 
-<a href="gm.html" class="box-link">Gm Login</a>
-
-<footer>Made by @chars1</footer>
+  <a href="gm.html" class="box-small">GM Login</a>
+  <footer>Made by @chars1</footer>
 
 </body>
 </html>
