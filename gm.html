@@ -217,6 +217,8 @@
 
     .player-check:hover { border-color: rgba(232,255,60,0.3); }
     .player-check.selected { border-color: var(--accent); background: rgba(232,255,60,0.05); }
+    .player-check.captain { border-color: #ff9f1c; background: rgba(255,159,28,0.07); }
+    .player-check.disabled { opacity: 0.35; cursor: not-allowed; }
 
     .check-box {
       width: 20px;
@@ -230,14 +232,32 @@
       transition: border-color 0.15s, background 0.15s;
     }
 
-    .player-check.selected .check-box {
-      background: var(--accent);
-      border-color: var(--accent);
-    }
+    .player-check.selected .check-box { background: var(--accent); border-color: var(--accent); }
+    .player-check.captain .check-box { background: #ff9f1c; border-color: #ff9f1c; }
 
     .check-tick { display: none; color: #050508; font-size: 12px; font-weight: 900; }
     .player-check.selected .check-tick { display: block; }
-    .player-check-name { font-size: 14px; font-weight: 500; }
+    .player-check.captain .check-tick { display: block; }
+
+    .player-check-name { font-size: 14px; font-weight: 500; flex: 1; }
+
+    .captain-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: rgba(255,159,28,0.15);
+      border: 1px solid rgba(255,159,28,0.4);
+      color: #ff9f1c;
+      border-radius: 99px;
+      padding: 2px 8px;
+    }
+
+    .max-hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
 
     .submitted-badge {
       display: inline-flex;
@@ -390,9 +410,9 @@
           <span class="spinner"></span> Loading roster…
         </div>
         <div id="roster-area" style="display:none;">
+          <div class="max-hint">Select up to <strong>5 players</strong>. First pick is Captain (1.2× boost).</div>
           <div class="select-all-row">
-            <span class="selected-count" id="selected-count">0 selected</span>
-            <button class="select-all-btn" id="select-all-btn">Select All</button>
+            <span class="selected-count" id="selected-count">0 / 5 selected</span>
           </div>
           <div class="player-list" id="player-list"></div>
           <button class="btn" id="submit-btn">Submit Lineup</button>
@@ -578,12 +598,16 @@
 
     function renderPlayerList(players, selected = []) {
       const list = document.getElementById('player-list');
+      // selected[0] is captain
       list.innerHTML = players.map(p => {
-        const isSelected = selected.includes(p);
+        const idx = selected.indexOf(p);
+        const isSelected = idx !== -1;
+        const isCaptain = idx === 0;
         return `
-          <div class="player-check ${isSelected ? 'selected' : ''}" data-player="${escapeHtml(p)}">
+          <div class="player-check ${isCaptain ? 'captain' : isSelected ? 'selected' : ''}" data-player="${escapeHtml(p)}">
             <div class="check-box"><span class="check-tick">✓</span></div>
             <span class="player-check-name">${escapeHtml(p)}</span>
+            ${isCaptain ? '<span class="captain-badge">⚡ Captain 1.2×</span>' : ''}
           </div>`;
       }).join('');
 
@@ -591,28 +615,61 @@
 
       list.addEventListener('click', e => {
         const card = e.target.closest('.player-check');
-        if (!card) return;
-        card.classList.toggle('selected');
+        if (!card || card.classList.contains('disabled')) return;
+
+        const isSelected = card.classList.contains('selected') || card.classList.contains('captain');
+        const currentSelected = [...document.querySelectorAll('.player-check.selected, .player-check.captain')];
+
+        if (!isSelected && currentSelected.length >= 5) return; // max 5
+
+        // Toggle
+        if (isSelected) {
+          card.classList.remove('selected', 'captain');
+        } else {
+          card.classList.add('selected');
+        }
+
+        // Recalculate captain (first in DOM order that is selected)
+        refreshCaptain();
         updateCount();
       });
     }
 
-    function updateCount() {
-      const total = document.querySelectorAll('.player-check.selected').length;
-      document.getElementById('selected-count').textContent = `${total} selected`;
+    function refreshCaptain() {
+      const all = [...document.querySelectorAll('.player-check')];
+      const selected = all.filter(c => c.classList.contains('selected') || c.classList.contains('captain'));
+
+      // Strip all captain badges first
+      all.forEach(c => {
+        c.classList.remove('captain');
+        const badge = c.querySelector('.captain-badge');
+        if (badge) badge.remove();
+      });
+
+      // Re-mark first selected as captain
+      if (selected.length > 0) {
+        const cap = selected[0];
+        cap.classList.remove('selected');
+        cap.classList.add('captain');
+        if (!cap.querySelector('.captain-badge')) {
+          const badge = document.createElement('span');
+          badge.className = 'captain-badge';
+          badge.textContent = '⚡ Captain 1.2×';
+          cap.appendChild(badge);
+        }
+      }
     }
 
-    document.getElementById('select-all-btn').addEventListener('click', () => {
-      const cards = document.querySelectorAll('.player-check');
-      const allSelected = [...cards].every(c => c.classList.contains('selected'));
-      cards.forEach(c => c.classList.toggle('selected', !allSelected));
-      document.getElementById('select-all-btn').textContent = allSelected ? 'Select All' : 'Deselect All';
-      updateCount();
-    });
+    function updateCount() {
+      const total = document.querySelectorAll('.player-check.selected, .player-check.captain').length;
+      document.getElementById('selected-count').textContent = `${total} / 5 selected`;
+    }
 
     document.getElementById('submit-btn').addEventListener('click', async () => {
-      const selected = [...document.querySelectorAll('.player-check.selected')]
-        .map(c => c.dataset.player);
+      // Captain first, then rest in DOM order
+      const captain = [...document.querySelectorAll('.player-check.captain')].map(c => c.dataset.player);
+      const rest = [...document.querySelectorAll('.player-check.selected')].map(c => c.dataset.player);
+      const selected = [...captain, ...rest];
       const btn   = document.getElementById('submit-btn');
       const msgEl = document.getElementById('submit-msg');
       const errEl = document.getElementById('submit-error');
