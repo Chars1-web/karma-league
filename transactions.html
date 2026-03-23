@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ascended Karma League – Transactions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #050508; --card: #13131c; --border: #1e1e2e;
+      --accent: #e8ff3c; --accent2: #ff3c6e; --text: #f0f0f0; --muted: #6b6b80;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: linear-gradient(rgba(232,255,60,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(232,255,60,0.03) 1px,transparent 1px);
+      background-size: 40px 40px; pointer-events: none; z-index: 0;
+    }
+    header { position: relative; z-index: 1; padding: 40px 24px 20px; text-align: center; border-bottom: 1px solid var(--border); }
+    .header-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+    h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px,8vw,72px); letter-spacing: 0.04em; line-height: 1; }
+    h1 span { color: var(--accent); }
+    main { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; padding: 32px 16px 80px; }
+
+```
+.tabs { display: flex; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
+.tab { flex: 1; padding: 10px; text-align: center; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--muted); cursor: pointer; transition: all 0.2s; min-width: 80px; }
+.tab.active { background: var(--accent); color: #050508; border-color: var(--accent); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+.card-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.05em; margin-bottom: 16px; }
+.section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.field { margin-bottom: 16px; }
+
+select, input[type="text"], input[type="password"], textarea {
+  width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 16px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; transition: border-color 0.2s; appearance: none;
+}
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b80' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; }
+select:focus, input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+textarea { resize: vertical; min-height: 60px; line-height: 1.6; }
+
+.btn { width: 100%; background: var(--accent); color: #050508; border: none; border-radius: 12px; padding: 13px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 0.05em; cursor: pointer; transition: opacity 0.2s, transform 0.15s; }
+.btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); margin-top: 10px; }
+.btn-ghost:hover { color: var(--accent2); border-color: var(--accent2); opacity: 1; }
+.error-msg { color: var(--accent2); font-size: 13px; font-weight: 600; margin-top: 8px; min-height: 18px; }
+.success-msg { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 8px; min-height: 18px; }
+
+/* Trade form */
+.trade-grid { display: grid; grid-template-columns: 1fr 36px 1fr; gap: 8px; align-items: start; margin-bottom: 16px; }
+.trade-arrow { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--accent); text-align: center; padding-top: 30px; }
+.trade-side-label { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+
+.picks-added { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.pick-tag {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(232,255,60,0.06); border: 1px solid rgba(232,255,60,0.2);
+  border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 600; color: var(--accent);
+}
+.pick-tag button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
+.pick-tag button:hover { color: var(--accent2); }
+
+.add-pick-row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.add-pick-row select { flex: 1; font-size: 13px; padding: 8px 12px; }
+.add-pick-btn { background: rgba(232,255,60,0.1); border: 1px solid rgba(232,255,60,0.3); color: var(--accent); border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+.add-pick-btn:hover { background: rgba(232,255,60,0.2); }
+
+/* Transaction log */
+.tx-empty { text-align: center; color: var(--muted); font-size: 14px; padding: 48px 0; }
+.tx-item { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; margin-bottom: 12px; }
+.tx-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.tx-type-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; border-radius: 99px; padding: 3px 10px; }
+.tx-type-badge.trade { background: rgba(232,255,60,0.1); border: 1px solid rgba(232,255,60,0.25); color: var(--accent); }
+.tx-type-badge.waiver { background: rgba(255,159,28,0.1); border: 1px solid rgba(255,159,28,0.3); color: #ff9f1c; }
+.tx-type-badge.other { background: rgba(160,100,255,0.1); border: 1px solid rgba(160,100,255,0.3); color: #a064ff; }
+.tx-date { font-size: 11px; color: var(--muted); margin-left: auto; }
+.tx-body { font-size: 14px; line-height: 1.8; }
+.tx-team { font-weight: 700; color: var(--accent); }
+.tx-notes { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 6px; }
+.tx-delete { font-size: 11px; color: var(--accent2); background: none; border: none; cursor: pointer; padding: 0; }
+.tx-delete:hover { text-decoration: underline; }
+
+/* Draft picks */
+.picks-season { margin-bottom: 32px; }
+.picks-season-title { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 12px; }
+.picks-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.picks-table { width: 100%; border-collapse: collapse; }
+.picks-table th { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); background: var(--bg); }
+.picks-table td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+.picks-table tr:last-child td { border-bottom: none; }
+.team-cell { font-weight: 700; color: var(--text); }
+.pick-own { color: var(--accent); font-weight: 700; }
+.pick-traded { color: #ff9f1c; font-weight: 600; font-size: 12px; }
+.pick-none { color: var(--muted); font-style: italic; }
+
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+footer { position: relative; z-index: 1; text-align: center; padding: 0 0 40px; }
+.home-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text); text-decoration: none; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid var(--border); background: var(--card); padding: 10px 22px; border-radius: 10px; transition: border-color 0.2s, background 0.2s; }
+.home-link:hover { border-color: var(--accent); background: rgba(232,255,60,0.06); color: var(--accent); }
+```
+
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-eyebrow">League Activity</div>
+    <h1>Ascended <span>Karma</span> League</h1>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <div class="tab active" data-tab="transactions">Transactions</div>
+      <div class="tab" data-tab="picks">Draft Picks</div>
+      <div class="tab" data-tab="commish">Commish</div>
+    </div>
+
+```
+<!-- Transactions -->
+<div id="tab-transactions" class="tab-content active">
+  <div id="tx-list"><p style="color:var(--muted);font-size:14px;text-align:center;padding:48px 0;"><span class="spinner"></span> Loading…</p></div>
+</div>
+
+<!-- Draft Picks -->
+<div id="tab-picks" class="tab-content">
+  <div id="picks-container"><p style="color:var(--muted);font-size:14px;text-align:center;padding:48px 0;"><span class="spinner"></span> Loading…</p></div>
+</div>
+
+<!-- Commish -->
+<div id="tab-commish" class="tab-content">
+  <div id="cx-login-wrap">
+    <div class="card">
+      <div class="card-title">Commissioner Login</div>
+      <div class="field">
+        <div class="section-label">Password</div>
+        <input type="password" id="cx-pass" placeholder="Enter commissioner password…" />
+      </div>
+      <div class="error-msg" id="cx-error"></div>
+      <button class="btn" id="cx-login-btn">Log In</button>
+    </div>
+  </div>
+
+  <div id="cx-panel" style="display:none;">
+    <div class="card">
+      <div class="card-title">Log Transaction</div>
+      <div class="field">
+        <div class="section-label">Type</div>
+        <select id="tx-type">
+          <option value="trade">Trade</option>
+          <option value="waiver">Waiver / Free Agent</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <!-- Trade form -->
+      <div id="trade-form">
+        <div class="trade-grid">
+          <div>
+            <div class="trade-side-label">Team A</div>
+            <select id="tx-team-a" style="margin-bottom:8px;"></select>
+            <div class="section-label" style="margin-top:8px;">Players sent</div>
+            <textarea id="tx-a-players" placeholder="Player names (optional)…" style="min-height:50px;margin-bottom:8px;"></textarea>
+            <div class="section-label">Picks sent</div>
+            <div id="a-picks-added" class="picks-added"></div>
+            <div class="add-pick-row">
+              <select id="a-pick-select"><option value="">Add pick…</option></select>
+              <button class="add-pick-btn" id="a-add-pick-btn">+ Add</button>
+            </div>
+          </div>
+          <div class="trade-arrow">⇄</div>
+          <div>
+            <div class="trade-side-label">Team B</div>
+            <select id="tx-team-b" style="margin-bottom:8px;"></select>
+            <div class="section-label" style="margin-top:8px;">Players sent</div>
+            <textarea id="tx-b-players" placeholder="Player names (optional)…" style="min-height:50px;margin-bottom:8px;"></textarea>
+            <div class="section-label">Picks sent</div>
+            <div id="b-picks-added" class="picks-added"></div>
+            <div class="add-pick-row">
+              <select id="b-pick-select"><option value="">Add pick…</option></select>
+              <button class="add-pick-btn" id="b-add-pick-btn">+ Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Other form -->
+      <div id="other-form" style="display:none;">
+        <div class="field">
+          <div class="section-label">Description</div>
+          <textarea id="tx-description" placeholder="Describe the transaction…"></textarea>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="section-label">Notes (optional)</div>
+        <input type="text" id="tx-notes" placeholder="Any additional notes…" />
+      </div>
+      <button class="btn" id="tx-submit-btn">Log Transaction</button>
+      <div class="error-msg" id="tx-error"></div>
+      <div class="success-msg" id="tx-msg"></div>
+    </div>
+
+    <!-- Seed picks (one-time) -->
+    <div class="card">
+      <div class="card-title">Seed Draft Picks</div>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">Run this once to populate the draft picks table. Safe to run again — it won't duplicate.</p>
+      <button class="btn" id="seed-btn">Seed Draft Picks</button>
+      <div class="success-msg" id="seed-msg"></div>
+      <div class="error-msg" id="seed-error"></div>
+    </div>
+
+    <button class="btn btn-ghost" id="cx-logout-btn">Log Out</button>
+  </div>
+</div>
+```
+
+  </main>
+
+  <footer>
+    <a href="index.html" class="home-link">← Home</a>
+  </footer>
+
+  <script>
+    const { createClient } = supabase;
+    const sb = createClient(
+      'https://orreqxjbzqcjrzuazpco.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycmVxeGpienFjanJ6dWF6cGNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMjU0OTYsImV4cCI6MjA4OTgwMTQ5Nn0.Ew5tD42tqmNMa0Ctf14QoD9UFI1ElGE-Zk0cCdwAoVE'
+    );
+
+    const COMMISH_PASSWORD = 'commish-password';
+
+    const TEAMS = ['Ascended','Bloodhawks','Bullets','Crusaders','Daggers','Dogs','Dubs',
+      'Falcons','Firebirds','Karma Chefs','Lightning','Martians','Methsters',
+      'Polar Bears','Stars','Thunder','Titans','Tourists','Vampires','Wolves'];
+
+    // Initial pick ownership data for seeding
+    // Each entry: { original_team, current_owner, season, round }
+    // current_owner = who has it now based on your data
+    const SEED_PICKS = [
+      // ── S2 ──
+      { t:'Dubs',        o:'Dubs',        s:'S2', r:'FRP' }, // X = doesn't own
+      { t:'Dubs',        o:'Dogs',        s:'S2', r:'SRP' }, // Dogs+Polar Bears = Dogs has it... split: 2 picks
+      { t:'Dubs',        o:'Polar Bears', s:'S2', r:'SRP2'},
+      { t:'Dogs',        o:'Dogs',        s:'S2', r:'FRP' },
+      // Dogs S2 SRP = X
+      { t:'Firebirds',   o:'Firebirds',   s:'S2', r:'FRP' },
+      { t:'Firebirds',   o:'Firebirds',   s:'S2', r:'SRP' },
+      { t:'Firebirds',   o:'Dubs',        s:'S2', r:'SRP2'},
+      { t:'Firebirds',   o:'Methsters',   s:'S2', r:'SRP3'},
+      { t:'Thunder',     o:'Thunder',     s:'S2', r:'FRP' },
+      // Thunder S2 SRP = X
+      { t:'Vampires',    o:'Vampires',    s:'S2', r:'FRP' },
+      { t:'Vampires',    o:'Vampires',    s:'S2', r:'SRP' },
+      { t:'Titans',      o:'Titans',      s:'S2', r:'FRP' },
+      // Titans S2 SRP = X
+      // Tourists S2 FRP = X
+      { t:'Tourists',    o:'Tourists',    s:'S2', r:'SRP' },
+      { t:'Crusaders',   o:'Crusaders',   s:'S2', r:'FRP' },
+      { t:'Crusaders',   o:'Crusaders',   s:'S2', r:'SRP' },
+      { t:'Crusaders',   o:'Ascended',    s:'S2', r:'SRP2'},
+      { t:'Crusaders',   o:'Titans',      s:'S2', r:'SRP3'},
+      { t:'Wolves',      o:'Wolves',      s:'S2', r:'FRP' },
+      { t:'Wolves',      o:'Wolves',      s:'S2', r:'SRP' },
+      // Polar Bears S2 FRP = X
+      { t:'Polar Bears', o:'Thunder',     s:'S2', r:'SRP' },
+      { t:'Karma Chefs', o:'Karma Chefs', s:'S2', r:'FRP' },
+      { t:'Karma Chefs', o:'Karma Chefs', s:'S2', r:'SRP' },
+      { t:'Lightning',   o:'Lightning',   s:'S2', r:'FRP' },
+      { t:'Lightning',   o:'Lightning',   s:'S2', r:'SRP' },
+      { t:'Falcons',     o:'Falcons',     s:'S2', r:'FRP' },
+      { t:'Falcons',     o:'Tourists',    s:'S2', r:'FRP2'},
+      { t:'Falcons',     o:'Falcons',     s:'S2', r:'SRP' },
+      { t:'Ascended',    o:'Ascended',    s:'S2', r:'FRP' },
+      { t:'Ascended',    o:'Dubs',        s:'S2', r:'FRP2'},
+      { t:'Ascended',    o:'Polar Bears', s:'S2', r:'FRP3'},
+      // Ascended S2 SRP = X
+      { t:'Martians',    o:'Martians',    s:'S2', r:'FRP' },
+      { t:'Martians',    o:'Martians',    s:'S2', r:'SRP' },
+      { t:'Bloodhawks',  o:'Bloodhawks',  s:'S2', r:'FRP' },
+      { t:'Bloodhawks',  o:'Bloodhawks',  s:'S2', r:'SRP' },
+      { t:'Daggers',     o:'Daggers',     s:'S2', r:'FRP' },
+      { t:'Daggers',     o:'Daggers',     s:'S2', r:'SRP' },
+      { t:'Methsters',   o:'Methsters',   s:'S2', r:'FRP' },
+      // Methsters S2 SRP = X
+      { t:'Stars',       o:'Stars',       s:'S2', r:'FRP' },
+      { t:'Stars',       o:'Stars',       s:'S2', r:'SRP' },
+      { t:'Bullets',     o:'Bullets',     s:'S2', r:'FRP' },
+      { t:'Bullets',     o:'Bullets',     s:'S2', r:'SRP' },
+
+      // ── S3 ──
+      { t:'Dubs',        o:'Dubs',        s:'S3', r:'FRP' },
+      { t:'Dubs',        o:'Dubs',        s:'S3', r:'SRP' },
+      { t:'Dogs',        o:'Dogs',        s:'S3', r:'FRP' },
+      { t:'Dogs',        o:'Dogs',        s:'S3', r:'SRP' },
+      { t:'Firebirds',   o:'Firebirds',   s:'S3', r:'FRP' },
+      { t:'Firebirds',   o:'Methsters',   s:'S3', r:'FRP2'},
+      { t:'Firebirds',   o:'Firebirds',   s:'S3', r:'SRP' },
+      { t:'Thunder',     o:'Thunder',     s:'S3', r:'FRP' },
+      { t:'Thunder',     o:'Thunder',     s:'S3', r:'SRP' },
+      { t:'Thunder',     o:'Ascended',    s:'S3', r:'SRP2'},
+      { t:'Vampires',    o:'Vampires',    s:'S3', r:'FRP' },
+      { t:'Vampires',    o:'Bullets',     s:'S3', r:'FRP2'},
+      { t:'Vampires',    o:'Vampires',    s:'S3', r:'SRP' },
+      { t:'Titans',      o:'Titans',      s:'S3', r:'FRP' },
+      // Titans S3 SRP = X
+      { t:'Tourists',    o:'Tourists',    s:'S3', r:'FRP' },
+      { t:'Tourists',    o:'Tourists',    s:'S3', r:'SRP' },
+      { t:'Crusaders',   o:'Crusaders',   s:'S3', r:'FRP' },
+      { t:'Crusaders',   o:'Daggers',     s:'S3', r:'FRP2'},
+      { t:'Crusaders',   o:'Crusaders',   s:'S3', r:'SRP' },
+      { t:'Crusaders',   o:'Titans',      s:'S3', r:'SRP2'},
+      { t:'Wolves',      o:'Wolves',      s:'S3', r:'FRP' },
+      { t:'Wolves',      o:'Wolves',      s:'S3', r:'SRP' },
+      // Polar Bears S3 FRP = X
+      { t:'Polar Bears', o:'Methsters',   s:'S3', r:'SRP' },
+      { t:'Karma Chefs', o:'Karma Chefs', s:'S3', r:'FRP' },
+      { t:'Karma Chefs', o:'Karma Chefs', s:'S3', r:'SRP' },
+      { t:'Lightning',   o:'Lightning',   s:'S3', r:'FRP' },
+      { t:'Lightning',   o:'Lightning',   s:'S3', r:'SRP' },
+      { t:'Falcons',     o:'Falcons',     s:'S3', r:'FRP' },
+      { t:'Falcons',     o:'Falcons',     s:'S3', r:'SRP' },
+      { t:'Ascended',    o:'Ascended',    s:'S3', r:'FRP' },
+      { t:'Ascended',    o:'Polar Bears', s:'S3', r:'FRP2'},
+      { t:'Ascended',    o:'Polar Bears', s:'S3', r:'SRP' },
+      { t:'Martians',    o:'Martians',    s:'S3', r:'FRP' },
+      { t:'Martians',    o:'Martians',    s:'S3', r:'SRP' },
+      { t:'Bloodhawks',  o:'Bloodhawks',  s:'S3', r:'FRP' },
+      { t:'Bloodhawks',  o:'Bloodhawks',  s:'S3', r:'SRP' },
+      // Daggers S3 FRP = X
+      { t:'Daggers',     o:'Daggers',     s:'S3', r:'SRP' },
+      { t:'Methsters',   o:'Methsters',   s:'S3', r:'FRP' },
+      { t:'Methsters',   o:'Methsters',   s:'S3', r:'SRP' },
+      { t:'Stars',       o:'Stars',       s:'S3', r:'FRP' },
+      { t:'Stars',       o:'Stars',       s:'S3', r:'SRP' },
+      // Bullets S3 FRP = X
+      { t:'Bullets',     o:'Bullets',     s:'S3', r:'SRP' },
+
+      // ── S4 ── (all teams own their own picks)
+      ...['Dubs','Dogs','Firebirds','Thunder','Vampires','Titans','Tourists','Crusaders',
+          'Wolves','Polar Bears','Karma Chefs','Lightning','Falcons','Ascended','Martians',
+          'Bloodhawks','Daggers','Methsters','Stars','Bullets'].flatMap(t => [
+        { t, o: t, s: 'S4', r: 'FRP' },
+        { t, o: t, s: 'S4', r: 'SRP' },
+      ])
+    ].map(p => ({ original_team: p.t, current_owner: p.o, season: p.s, round: p.r }));
+
+    // State
+    let allPicks = []; // loaded from Supabase
+    let aPicksSelected = []; // [{id, label}]
+    let bPicksSelected = [];
+    let isCommish = false;
+
+    function escapeHtml(str) {
+      return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ── Tabs ──────────────────────────────────────────────────────────────────
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+        if (tab.dataset.tab === 'picks') renderPicks();
+      });
+    });
+
+    // ── Load picks from Supabase ──────────────────────────────────────────────
+    async function loadPicks() {
+      try {
+        const { data, error } = await sb.from('draft_picks').select('*').order('season').order('original_team');
+        if (error) throw error;
+        allPicks = data || [];
+      } catch(e) { console.error('Failed to load picks:', e); }
+    }
+
+    // ── Render picks table ────────────────────────────────────────────────────
+    function renderPicks() {
+      const container = document.getElementById('picks-container');
+      if (!allPicks.length) { container.innerHTML = '<p style="color:var(--muted);font-size:14px;text-align:center;padding:48px 0;">No picks data yet. Commissioner needs to seed picks first.</p>'; return; }
+
+      const seasons = ['S2','S3','S4'];
+      const seasonLabels = { S2: 'Season 2 Draft Picks', S3: 'Season 3 Draft Picks', S4: 'Season 4 Draft Picks' };
+
+      container.innerHTML = seasons.map(season => {
+        const seasonPicks = allPicks.filter(p => p.season === season);
+
+        const rows = TEAMS.map(team => {
+          const teamPicks = seasonPicks.filter(p => p.original_team === team);
+          const frpPicks = teamPicks.filter(p => p.round.startsWith('FRP'));
+          const srpPicks = teamPicks.filter(p => p.round.startsWith('SRP'));
+
+          const renderPickGroup = (picks) => {
+            if (!picks.length) return `<span class="pick-none">—</span>`;
+            return picks.map(p => {
+              const isOwn = p.current_owner === team;
+              return `<span class="${isOwn ? 'pick-own' : 'pick-traded'}">${isOwn ? 'Own' : escapeHtml(p.current_owner)}</span>`;
+            }).join(' + ');
+          };
+
+          return `<tr>
+            <td class="team-cell">${escapeHtml(team)}</td>
+            <td>${renderPickGroup(frpPicks)}</td>
+            <td>${renderPickGroup(srpPicks)}</td>
+          </tr>`;
+        }).join('');
+
+        return `<div class="picks-season">
+          <div class="picks-season-title">${seasonLabels[season]}</div>
+          <div class="picks-wrap">
+            <table class="picks-table">
+              <thead><tr><th>Team</th><th>1st Round</th><th>2nd Round</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // ── Transactions ──────────────────────────────────────────────────────────
+    async function loadTransactions() {
+      const container = document.getElementById('tx-list');
+      try {
+        const { data, error } = await sb.from('transactions').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        if (!data || !data.length) { container.innerHTML = '<p class="tx-empty">No transactions yet.</p>'; return; }
+        container.innerHTML = data.map(tx => {
+          const date = new Date(tx.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          let body = '';
+          if (tx.type === 'trade') {
+            body = `<span class="tx-team">${escapeHtml(tx.team_a)}</span> receives: ${escapeHtml(tx.a_receives || '—')}<br><span class="tx-team">${escapeHtml(tx.team_b)}</span> receives: ${escapeHtml(tx.b_receives || '—')}`;
+          } else {
+            body = escapeHtml(tx.description || '');
+          }
+          return `<div class="tx-item" id="tx-${tx.id}">
+            <div class="tx-header">
+              <span class="tx-type-badge ${tx.type}">${tx.type}</span>
+              <span class="tx-date">${date}</span>
+              ${isCommish ? `<button class="tx-delete" onclick="deleteTx(${tx.id})">✕ Delete</button>` : ''}
+            </div>
+            <div class="tx-body">${body}</div>
+            ${tx.notes ? `<div class="tx-notes">${escapeHtml(tx.notes)}</div>` : ''}
+          </div>`;
+        }).join('');
+      } catch(e) {
+        container.innerHTML = `<p style="color:var(--accent2);font-size:14px;text-align:center;padding:32px 0;">Failed to load: ${escapeHtml(e.message)}</p>`;
+      }
+    }
+
+    window.deleteTx = async function(id) {
+      if (!confirm('Delete this transaction?')) return;
+      try { await sb.from('transactions').delete().eq('id', id); document.getElementById('tx-' + id)?.remove(); }
+      catch(e) { alert('Failed: ' + e.message); }
+    }
+
+    // ── Commish login ─────────────────────────────────────────────────────────
+    document.getElementById('cx-login-btn').addEventListener('click', () => {
+      const pass = document.getElementById('cx-pass').value;
+      if (pass !== COMMISH_PASSWORD) { document.getElementById('cx-error').textContent = 'Incorrect password.'; return; }
+      document.getElementById('cx-error').textContent = '';
+      document.getElementById('cx-login-wrap').style.display = 'none';
+      document.getElementById('cx-panel').style.display = 'block';
+      isCommish = true;
+      populateTeamSelects();
+      loadTransactions();
+    });
+
+    document.getElementById('cx-pass').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('cx-login-btn').click(); });
+
+    document.getElementById('cx-logout-btn').addEventListener('click', () => {
+      document.getElementById('cx-panel').style.display = 'none';
+      document.getElementById('cx-login-wrap').style.display = 'block';
+      document.getElementById('cx-pass').value = '';
+      isCommish = false;
+      loadTransactions();
+    });
+
+    function populateTeamSelects() {
+      const opts = TEAMS.map(t => `<option value="${t}">${t}</option>`).join('');
+      document.getElementById('tx-team-a').innerHTML = '<option value="">Select team…</option>' + opts;
+      document.getElementById('tx-team-b').innerHTML = '<option value="">Select team…</option>' + opts;
+    }
+
+    document.getElementById('tx-type').addEventListener('change', function() {
+      const isTrade = this.value === 'trade';
+      document.getElementById('trade-form').style.display = isTrade ? 'block' : 'none';
+      document.getElementById('other-form').style.display = isTrade ? 'none' : 'block';
+    });
+
+    // ── Pick selectors ────────────────────────────────────────────────────────
+    function getPickLabel(pick) {
+      const isOwn = pick.current_owner === pick.original_team;
+      return `${pick.season} ${pick.round.replace(/\d+$/, '')} (${pick.original_team})`;
+    }
+
+    function updatePickDropdown(side) {
+      const teamEl = document.getElementById(`tx-team-${side}`);
+      const selectEl = document.getElementById(`${side}-pick-select`);
+      const team = teamEl.value;
+      const already = side === 'a' ? aPicksSelected : bPicksSelected;
+      const alreadyIds = already.map(p => p.id);
+
+      // Show picks currently owned by this team
+      const owned = allPicks.filter(p => p.current_owner === team && !alreadyIds.includes(p.id));
+      selectEl.innerHTML = '<option value="">Add pick…</option>' + owned.map(p =>
+        `<option value="${p.id}">${escapeHtml(getPickLabel(p))}</option>`
+      ).join('');
+    }
+
+    ['a','b'].forEach(side => {
+      document.getElementById(`tx-team-${side}`).addEventListener('change', () => updatePickDropdown(side));
+      document.getElementById(`${side}-add-pick-btn`).addEventListener('click', () => {
+        const selectEl = document.getElementById(`${side}-pick-select`);
+        const id = parseInt(selectEl.value);
+        if (!id) return;
+        const pick = allPicks.find(p => p.id === id);
+        if (!pick) return;
+        const arr = side === 'a' ? aPicksSelected : bPicksSelected;
+        arr.push({ id, label: getPickLabel(pick) });
+        renderPickTags(side);
+        updatePickDropdown(side);
+      });
+    });
+
+    function renderPickTags(side) {
+      const arr = side === 'a' ? aPicksSelected : bPicksSelected;
+      document.getElementById(`${side}-picks-added`).innerHTML = arr.map((p, i) =>
+        `<div class="pick-tag">
+          <span>${escapeHtml(p.label)}</span>
+          <button onclick="removePick('${side}', ${i})">✕</button>
+        </div>`
+      ).join('');
+    }
+
+    window.removePick = function(side, idx) {
+      if (side === 'a') aPicksSelected.splice(idx, 1);
+      else bPicksSelected.splice(idx, 1);
+      renderPickTags(side);
+      updatePickDropdown(side);
+    }
+
+    // ── Submit transaction ────────────────────────────────────────────────────
+    document.getElementById('tx-submit-btn').addEventListener('click', async () => {
+      const type = document.getElementById('tx-type').value;
+      const notes = document.getElementById('tx-notes').value.trim();
+      const btn = document.getElementById('tx-submit-btn');
+      const msgEl = document.getElementById('tx-msg'), errEl = document.getElementById('tx-error');
+      msgEl.textContent = ''; errEl.textContent = '';
+
+      let payload = { type, notes, created_at: new Date().toISOString() };
+
+      if (type === 'trade') {
+        const teamA = document.getElementById('tx-team-a').value;
+        const teamB = document.getElementById('tx-team-b').value;
+        const aPlayers = document.getElementById('tx-a-players').value.trim();
+        const bPlayers = document.getElementById('tx-b-players').value.trim();
+        if (!teamA || !teamB) { errEl.textContent = 'Please select both teams.'; return; }
+        if (teamA === teamB) { errEl.textContent = 'Teams must be different.'; return; }
+
+        // picks TeamA is sending go to TeamB, so TeamB receives them
+        const aPickLabels = aPicksSelected.map(p => p.label).join(', ');
+        const bPickLabels = bPicksSelected.map(p => p.label).join(', ');
+
+        // aReceives = what team A gets = B's players + B's picks
+        const aReceives = [bPlayers, bPickLabels].filter(s => s.trim()).join(', ') || '—';
+        // bReceives = what team B gets = A's players + A's picks
+        const bReceives = [aPlayers, aPickLabels].filter(s => s.trim()).join(', ') || '—';
+
+        if (!aReceives && !bReceives) { errEl.textContent = 'Please enter players or picks being traded.'; return; }
+
+        payload = { ...payload, team_a: teamA, a_receives: aReceives, team_b: teamB, b_receives: bReceives };
+
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving…';
+
+        try {
+          // Update pick ownership in Supabase
+          const pickUpdates = [
+            ...aPicksSelected.map(p => ({ id: p.id, new_owner: teamB })),
+            ...bPicksSelected.map(p => ({ id: p.id, new_owner: teamA })),
+          ];
+          for (const pu of pickUpdates) {
+            const { error } = await sb.from('draft_picks').update({ current_owner: pu.new_owner }).eq('id', pu.id);
+            if (error) throw error;
+          }
+
+          // Log transaction
+          const { error } = await sb.from('transactions').insert(payload);
+          if (error) throw error;
+
+          // Reload picks
+          await loadPicks();
+          renderPicks();
+
+          // Reset form
+          aPicksSelected = []; bPicksSelected = [];
+          renderPickTags('a'); renderPickTags('b');
+          document.getElementById('tx-team-a').value = '';
+          document.getElementById('tx-team-b').value = '';
+          document.getElementById('tx-a-players').value = '';
+          document.getElementById('tx-b-players').value = '';
+          document.getElementById('tx-notes').value = '';
+          document.getElementById('a-pick-select').innerHTML = '<option value="">Add pick…</option>';
+          document.getElementById('b-pick-select').innerHTML = '<option value="">Add pick…</option>';
+
+          msgEl.textContent = '✓ Trade logged and picks updated!';
+          loadTransactions();
+          setTimeout(() => { msgEl.textContent = ''; }, 4000);
+        } catch(e) { errEl.textContent = 'Failed: ' + e.message; }
+        finally { btn.disabled = false; btn.textContent = 'Log Transaction'; }
+
+      } else {
+        const desc = document.getElementById('tx-description').value.trim();
+        if (!desc) { errEl.textContent = 'Please enter a description.'; return; }
+        payload = { ...payload, description: desc };
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving…';
+        try {
+          const { error } = await sb.from('transactions').insert(payload);
+          if (error) throw error;
+          msgEl.textContent = '✓ Transaction logged!';
+          document.getElementById('tx-description').value = '';
+          document.getElementById('tx-notes').value = '';
+          loadTransactions();
+          setTimeout(() => { msgEl.textContent = ''; }, 3000);
+        } catch(e) { errEl.textContent = 'Failed: ' + e.message; }
+        finally { btn.disabled = false; btn.textContent = 'Log Transaction'; }
+      }
+    });
+
+    // ── Seed picks ────────────────────────────────────────────────────────────
+    document.getElementById('seed-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('seed-btn');
+      const msgEl = document.getElementById('seed-msg'), errEl = document.getElementById('seed-error');
+      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Seeding…';
+      msgEl.textContent = ''; errEl.textContent = '';
+      try {
+        // Check if already seeded
+        const { data } = await sb.from('draft_picks').select('id').limit(1);
+        if (data && data.length) {
+          msgEl.textContent = 'Picks already seeded!';
+          btn.disabled = false; btn.textContent = 'Seed Draft Picks'; return;
+        }
+        const { error } = await sb.from('draft_picks').insert(SEED_PICKS);
+        if (error) throw error;
+        await loadPicks();
+        msgEl.textContent = `✓ Seeded ${SEED_PICKS.length} picks successfully!`;
+      } catch(e) { errEl.textContent = 'Failed: ' + e.message; }
+      finally { btn.disabled = false; btn.textContent = 'Seed Draft Picks'; }
+    });
+
+    // Boot
+    loadPicks().then(() => loadTransactions());
+  </script>
+
+</body>
+</html>
