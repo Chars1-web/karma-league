@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ascended Karma League – GM Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #050508;
+      --card: #13131c;
+      --border: #1e1e2e;
+      --accent: #e8ff3c;
+      --accent2: #ff3c6e;
+      --text: #f0f0f0;
+      --muted: #6b6b80;
+    }
+
+```
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(232,255,60,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232,255,60,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+header {
+  position: relative;
+  z-index: 1;
+  padding: 40px 24px 20px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.header-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(32px, 7vw, 64px);
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+h1 span { color: var(--accent); }
+
+main {
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 40px 16px 80px;
+}
+
+#login-screen { animation: fadeIn 0.2s ease; }
+#dashboard, #commish-view { display: none; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+select, input[type="password"] {
+  width: 100%;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  transition: border-color 0.2s;
+  appearance: none;
+}
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b80' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+}
+
+select:focus, input:focus { outline: none; border-color: var(--accent); }
+
+.field { margin-bottom: 20px; }
+
+.btn {
+  width: 100%;
+  background: var(--accent);
+  color: #050508;
+  border: none;
+  border-radius: 12px;
+  padding: 13px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  margin-top: 10px;
+}
+
+.btn-ghost:hover { color: var(--accent2); border-color: var(--accent2); opacity: 1; }
+
+.btn-danger {
+  background: transparent;
+  color: var(--accent2);
+  border: 1px solid var(--accent2);
+  margin-top: 0;
+}
+
+.btn-danger:hover { background: rgba(255,60,110,0.1); opacity: 1; }
+
+.error-msg { color: var(--accent2); font-size: 13px; font-weight: 600; margin-top: 8px; min-height: 20px; }
+.success-msg { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 8px; min-height: 20px; }
+
+.dash-team {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.dash-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+
+.select-all-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.selected-count { font-size: 12px; color: var(--muted); }
+
+.select-all-btn {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.select-all-btn:hover { color: var(--accent); }
+
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.player-check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  user-select: none;
+}
+
+.player-check:hover { border-color: rgba(232,255,60,0.3); }
+.player-check.selected { border-color: var(--accent); background: rgba(232,255,60,0.05); }
+.player-check.captain { border-color: #ff9f1c; background: rgba(255,159,28,0.07); }
+.player-check.disabled { opacity: 0.35; cursor: not-allowed; }
+
+.check-box {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.player-check.selected .check-box { background: var(--accent); border-color: var(--accent); }
+.player-check.captain .check-box { background: #ff9f1c; border-color: #ff9f1c; }
+
+.check-tick { display: none; color: #050508; font-size: 12px; font-weight: 900; }
+.player-check.selected .check-tick { display: block; }
+.player-check.captain .check-tick { display: block; }
+
+.player-check-name { font-size: 14px; font-weight: 500; flex: 1; }
+
+.captain-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(255,159,28,0.15);
+  border: 1px solid rgba(255,159,28,0.4);
+  color: #ff9f1c;
+  border-radius: 99px;
+  padding: 2px 8px;
+}
+
+.max-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.submitted-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(232,255,60,0.08);
+  border: 1px solid rgba(232,255,60,0.2);
+  border-radius: 99px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+/* Commissioner */
+.commish-game {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.commish-team-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.commish-player {
+  font-size: 13px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: var(--text);
+}
+
+.commish-player:last-child { border-bottom: none; }
+
+.pending-item {
+  font-size: 13px;
+  color: var(--muted);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 0 0 40px;
+}
+
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 10px 22px;
+  border-radius: 10px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.home-link:hover {
+  border-color: var(--accent);
+  background: rgba(232,255,60,0.06);
+  color: var(--accent);
+}
+```
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-eyebrow">GM Portal</div>
+    <h1>Ascended <span>Karma</span> League</h1>
+  </header>
+
+  <main>
+
+```
+<!-- Login -->
+<div id="login-screen">
+  <div class="field">
+    <div class="section-label">Your Team</div>
+    <select id="login-team">
+      <option value="">Select your team…</option>
+      <option value="ascended">Ascended</option>
+      <option value="bloodhawks">Bloodhawks</option>
+      <option value="bullets">Bullets</option>
+      <option value="crusaders">Crusaders</option>
+      <option value="daggers">Daggers</option>
+      <option value="dogs">Dogs</option>
+      <option value="dubs">Dubs</option>
+      <option value="falcons">Falcons</option>
+      <option value="firebirds">Firebirds</option>
+      <option value="karma chefs">Karma Chefs</option>
+      <option value="lightning">Lightning</option>
+      <option value="martians">Martians</option>
+      <option value="methsters">Methsters</option>
+      <option value="polar bears">Polar Bears</option>
+      <option value="stars">Stars</option>
+      <option value="thunder">Thunder</option>
+      <option value="titans">Titans</option>
+      <option value="tourists">Tourists</option>
+      <option value="vampires">Vampires</option>
+      <option value="wolves">Wolves</option>
+      <option value="__commish__">⚙️ Commissioner</option>
+    </select>
+  </div>
+  <div class="field">
+    <div class="section-label">Password</div>
+    <input type="password" id="login-pass" placeholder="Enter password…" />
+  </div>
+  <div class="error-msg" id="login-error"></div>
+  <button class="btn" id="login-btn">Log In</button>
+</div>
+
+<!-- GM Dashboard -->
+<div id="dashboard">
+  <div class="dash-team" id="dash-team-name"></div>
+  <div class="dash-subtitle">GM Dashboard</div>
+  <div class="card">
+    <div class="card-title">Select Lineup</div>
+    <div id="submitted-badge-wrap"></div>
+    <div id="roster-loading" style="color:var(--muted);font-size:14px;margin-bottom:16px;">
+      <span class="spinner"></span> Loading roster…
+    </div>
+    <div id="roster-area" style="display:none;">
+      <div class="max-hint">Select up to <strong>5 players</strong>. First pick is Captain (1.2× boost).</div>
+      <div class="select-all-row">
+        <span class="selected-count" id="selected-count">0 / 5 selected</span>
+      </div>
+      <div class="player-list" id="player-list"></div>
+      <button class="btn" id="submit-btn">Submit Lineup</button>
+      <div class="error-msg" id="submit-error"></div>
+      <div class="success-msg" id="submit-msg"></div>
+    </div>
+  </div>
+  <button class="btn btn-ghost" id="clear-btn">Clear Lineup</button>
+  <button class="btn btn-ghost" id="logout-btn">Log Out</button>
+</div>
+
+<!-- Commissioner View -->
+<div id="commish-view">
+  <div class="dash-team">Commissioner</div>
+  <div class="dash-subtitle">All submitted lineups</div>
+  <button class="btn btn-danger" id="reset-all-btn" style="margin-bottom:20px;">🗑 Reset All Lineups (New Day)</button>
+  <div class="error-msg" id="reset-error"></div>
+  <div class="success-msg" id="reset-msg"></div>
+  <div id="commish-lineups"></div>
+  <button class="btn btn-ghost" id="commish-logout-btn" style="margin-top:24px;">Log Out</button>
+</div>
+```
+
+  </main>
+
+  <footer>
+    <a href="index.html" class="home-link">← Home</a>
+  </footer>
+
+  <script>
+    const { createClient } = supabase;
+    const sb = createClient(
+      'https://orreqxjbzqcjrzuazpco.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycmVxeGpienFjanJ6dWF6cGNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMjU0OTYsImV4cCI6MjA4OTgwMTQ5Nn0.Ew5tD42tqmNMa0Ctf14QoD9UFI1ElGE-Zk0cCdwAoVE'
+    );
+
+    const ROSTER_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSe6mW01Q2kgWDNkm-WDUtJziEmKHcpvvP-TKHy84jTjTXE_qIjEQZPDDPb36Xqn5k8t5-kpB6ipq1N/pub?gid=0&single=true&output=csv";
+
+    // ── Passwords — replace "change-me" with each team's real password ────────
+    const PASSWORDS = {
+      "ascended":    "change-me",
+      "bloodhawks":  "change-me",
+      "bullets":     "change-me",
+      "crusaders":   "change-me",
+      "daggers":     "change-me",
+      "dogs":        "change-me",
+      "dubs":        "change-me",
+      "falcons":     "change-me",
+      "firebirds":   "change-me",
+      "karma chefs": "change-me",
+      "lightning":   "change-me",
+      "martians":    "change-me",
+      "methsters":   "change-me",
+      "polar bears": "change-me",
+      "stars":       "change-me",
+      "thunder":     "change-me",
+      "titans":      "change-me",
+      "tourists":    "change-me",
+      "vampires":    "change-me",
+      "wolves":      "change-me",
+      "__commish__": "commish-password",
+    };
+
+    const ALL_TEAMS = Object.keys(PASSWORDS).filter(t => t !== '__commish__');
+    let currentTeam = null;
+    let rosterMap = {}; // { teamname: [player1, player2, ...] }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function toDisplay(team) {
+      return team.replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [], value = "", inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i], next = text[i + 1];
+        if (char === '"') {
+          if (inQuotes && next === '"') { value += '"'; i++; }
+          else inQuotes = !inQuotes;
+          continue;
+        }
+        if (char === ',' && !inQuotes) { row.push(value.trim()); value = ""; continue; }
+        if ((char === '\n' || char === '\r') && !inQuotes) {
+          if (char === '\r' && next === '\n') i++;
+          row.push(value.trim());
+          if (row.length > 1 || row[0] !== '') rows.push(row);
+          row = []; value = "";
+          continue;
+        }
+        value += char;
+      }
+      if (value.length || row.length) { row.push(value.trim()); rows.push(row); }
+      return rows;
+    }
+
+    // Load full roster sheet once on page load
+    async function loadRosterSheet() {
+      try {
+        const res = await fetch(ROSTER_URL, { cache: 'no-store' });
+        const text = await res.text();
+        const rows = parseCSV(text);
+        // col A = player name, col B = hidden user ID, col C = team (lowercase)
+        rows.slice(1).forEach(r => {
+          const name = (r[0] || '').trim();
+          const team = (r[2] || '').trim().toLowerCase();
+          if (!name || !team) return;
+          if (!rosterMap[team]) rosterMap[team] = [];
+          rosterMap[team].push(name);
+        });
+      } catch (e) {
+        console.error('Failed to load roster:', e);
+      }
+    }
+
+    // ── Login ─────────────────────────────────────────────────────────────────
+    document.getElementById('login-btn').addEventListener('click', doLogin);
+    document.getElementById('login-pass').addEventListener('keydown', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+
+    function doLogin() {
+      const team = document.getElementById('login-team').value.trim().toLowerCase();
+      const pass = document.getElementById('login-pass').value;
+      const err  = document.getElementById('login-error');
+
+      if (!team) { err.textContent = 'Please select your team.'; return; }
+      if (!pass)  { err.textContent = 'Please enter your password.'; return; }
+      if (PASSWORDS[team] !== pass) { err.textContent = 'Incorrect password. Try again.'; return; }
+
+      err.textContent = '';
+      document.getElementById('login-pass').value = '';
+
+      if (team === '__commish__') {
+        showCommish();
+      } else {
+        currentTeam = team;
+        showDashboard(team);
+      }
+    }
+
+    // ── GM Dashboard ──────────────────────────────────────────────────────────
+    async function showDashboard(team) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('commish-view').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('dash-team-name').textContent = toDisplay(team);
+      document.getElementById('submitted-badge-wrap').innerHTML = '';
+      document.getElementById('submit-msg').textContent = '';
+      document.getElementById('submit-error').textContent = '';
+      document.getElementById('roster-loading').style.display = 'block';
+      document.getElementById('roster-area').style.display = 'none';
+
+      // Get players for this team from roster
+      const players = rosterMap[team] || [];
+
+      // Get previously submitted lineup from Supabase
+      let savedPlayers = [];
+      try {
+        const { data } = await sb
+          .from('lineups')
+          .select('players')
+          .eq('team', team)
+          .maybeSingle();
+        if (data && data.players) {
+          savedPlayers = data.players.split('\n').filter(Boolean);
+        }
+      } catch (e) { /* ignore */ }
+
+      document.getElementById('roster-loading').style.display = 'none';
+      document.getElementById('roster-area').style.display = 'block';
+
+      if (!players.length) {
+        document.getElementById('player-list').innerHTML =
+          '<p style="color:var(--muted);font-size:13px;">No players found for this team in the roster sheet.</p>';
+        return;
+      }
+
+      if (savedPlayers.length) showSubmittedBadge();
+
+      renderPlayerList(players, savedPlayers);
+    }
+
+    function renderPlayerList(players, selected = []) {
+      const list = document.getElementById('player-list');
+      // selected[0] is captain
+      list.innerHTML = players.map(p => {
+        const idx = selected.indexOf(p);
+        const isSelected = idx !== -1;
+        const isCaptain = idx === 0;
+        return `
+          <div class="player-check ${isCaptain ? 'captain' : isSelected ? 'selected' : ''}" data-player="${escapeHtml(p)}">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <span class="player-check-name">${escapeHtml(p)}</span>
+            ${isCaptain ? '<span class="captain-badge">⚡ Captain 1.2×</span>' : ''}
+          </div>`;
+      }).join('');
+
+      updateCount();
+
+      list.addEventListener('click', e => {
+        const card = e.target.closest('.player-check');
+        if (!card || card.classList.contains('disabled')) return;
+
+        const isSelected = card.classList.contains('selected') || card.classList.contains('captain');
+        const currentSelected = [...document.querySelectorAll('.player-check.selected, .player-check.captain')];
+
+        if (!isSelected && currentSelected.length >= 5) return; // max 5
+
+        // Toggle
+        if (isSelected) {
+          card.classList.remove('selected', 'captain');
+        } else {
+          card.classList.add('selected');
+        }
+
+        // Recalculate captain (first in DOM order that is selected)
+        refreshCaptain();
+        updateCount();
+      });
+    }
+
+    function refreshCaptain() {
+      const all = [...document.querySelectorAll('.player-check')];
+      const selected = all.filter(c => c.classList.contains('selected') || c.classList.contains('captain'));
+
+      // Strip all captain badges first
+      all.forEach(c => {
+        c.classList.remove('captain');
+        const badge = c.querySelector('.captain-badge');
+        if (badge) badge.remove();
+      });
+
+      // Re-mark first selected as captain
+      if (selected.length > 0) {
+        const cap = selected[0];
+        cap.classList.remove('selected');
+        cap.classList.add('captain');
+        if (!cap.querySelector('.captain-badge')) {
+          const badge = document.createElement('span');
+          badge.className = 'captain-badge';
+          badge.textContent = '⚡ Captain 1.2×';
+          cap.appendChild(badge);
+        }
+      }
+    }
+
+    function updateCount() {
+      const total = document.querySelectorAll('.player-check.selected, .player-check.captain').length;
+      document.getElementById('selected-count').textContent = `${total} / 5 selected`;
+    }
+
+    document.getElementById('submit-btn').addEventListener('click', async () => {
+      // Captain first, then rest in DOM order
+      const captain = [...document.querySelectorAll('.player-check.captain')].map(c => c.dataset.player);
+      const rest = [...document.querySelectorAll('.player-check.selected')].map(c => c.dataset.player);
+      const selected = [...captain, ...rest];
+      const btn   = document.getElementById('submit-btn');
+      const msgEl = document.getElementById('submit-msg');
+      const errEl = document.getElementById('submit-error');
+
+      if (!selected.length) { errEl.textContent = 'Please select at least one player.'; return; }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Saving…';
+      msgEl.textContent = '';
+      errEl.textContent = '';
+
+      try {
+        const { error } = await sb.from('lineups').upsert(
+          { team: currentTeam, players: selected.join('\n'), updated_at: new Date().toISOString() },
+          { onConflict: 'team' }
+        );
+        if (error) throw error;
+
+        showSubmittedBadge();
+        msgEl.textContent = '✓ Lineup saved!';
+        setTimeout(() => { msgEl.textContent = ''; }, 3000);
+      } catch (e) {
+        errEl.textContent = 'Failed to save: ' + e.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Lineup';
+      }
+    });
+
+    function showSubmittedBadge() {
+      document.getElementById('submitted-badge-wrap').innerHTML =
+        `<div class="submitted-badge">✓ Lineup Submitted</div>`;
+    }
+
+    document.getElementById('clear-btn').addEventListener('click', async () => {
+      if (!confirm('Clear your submitted lineup?')) return;
+      try {
+        await sb.from('lineups').delete().eq('team', currentTeam);
+        document.getElementById('submitted-badge-wrap').innerHTML = '';
+        // Deselect all players
+        document.querySelectorAll('.player-check').forEach(c => {
+          c.classList.remove('selected', 'captain');
+          const badge = c.querySelector('.captain-badge');
+          if (badge) badge.remove();
+        });
+        updateCount();
+        document.getElementById('submit-msg').textContent = '✓ Lineup cleared.';
+        setTimeout(() => { document.getElementById('submit-msg').textContent = ''; }, 3000);
+      } catch (e) {
+        document.getElementById('submit-error').textContent = 'Failed to clear: ' + e.message;
+      }
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      currentTeam = null;
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('login-screen').style.display = 'block';
+      document.getElementById('login-team').value = '';
+    });
+
+    // ── Commissioner ──────────────────────────────────────────────────────────
+    async function showCommish() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('commish-view').style.display = 'block';
+
+      document.getElementById('commish-lineups').innerHTML =
+        '<p style="color:var(--muted);font-size:14px;"><span class="spinner"></span> Loading lineups…</p>';
+
+      try {
+        const { data, error } = await sb.from('lineups').select('team, players');
+        if (error) throw error;
+
+        const submittedMap = {};
+        (data || []).forEach(row => { submittedMap[row.team] = row.players; });
+
+        const submitted = ALL_TEAMS.filter(t => submittedMap[t]);
+        const pending   = ALL_TEAMS.filter(t => !submittedMap[t]);
+
+        let html = '';
+
+        if (!submitted.length) {
+          html = '<p style="color:var(--muted);font-size:14px;text-align:center;padding:40px 0;">No lineups submitted yet.</p>';
+        } else {
+          submitted.forEach(team => {
+            const players = submittedMap[team].split('\n').filter(Boolean);
+            html += `
+              <div class="commish-game">
+                <div class="commish-team-name">${escapeHtml(toDisplay(team))}</div>
+                ${players.map((p, i) => `
+                  <div class="commish-player">
+                    ${i + 1}. ${escapeHtml(p)}
+                    ${i === 0 ? '<span class="captain-badge" style="margin-left:8px;">⚡ Captain 1.2×</span>' : ''}
+                  </div>`).join('')}
+              </div>`;
+          });
+        }
+
+        if (pending.length) {
+          html += `
+            <div style="margin-top:24px;">
+              <div class="section-label" style="margin-bottom:12px;">Still Pending (${pending.length})</div>
+              ${pending.map(t => `<div class="pending-item">${toDisplay(t)}</div>`).join('')}
+            </div>`;
+        }
+
+        document.getElementById('commish-lineups').innerHTML = html;
+      } catch (e) {
+        document.getElementById('commish-lineups').innerHTML =
+          `<p style="color:var(--accent2);font-size:14px;">Failed to load: ${escapeHtml(e.message)}</p>`;
+      }
+    }
+
+    document.getElementById('reset-all-btn').addEventListener('click', async () => {
+      if (!confirm('Reset ALL lineups for all teams? This cannot be undone.')) return;
+      const btn = document.getElementById('reset-all-btn');
+      const msgEl = document.getElementById('reset-msg');
+      const errEl = document.getElementById('reset-error');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Resetting…';
+      msgEl.textContent = '';
+      errEl.textContent = '';
+      try {
+        const { error } = await sb.from('lineups').delete().neq('team', '');
+        if (error) throw error;
+        msgEl.textContent = '✓ All lineups cleared for new day!';
+        document.getElementById('commish-lineups').innerHTML =
+          '<p style="color:var(--muted);font-size:14px;text-align:center;padding:40px 0;">No lineups submitted yet.</p>';
+        setTimeout(() => { msgEl.textContent = ''; }, 4000);
+      } catch (e) {
+        errEl.textContent = 'Failed to reset: ' + e.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🗑 Reset All Lineups (New Day)';
+      }
+    });
+
+    document.getElementById('commish-logout-btn').addEventListener('click', () => {
+      document.getElementById('commish-view').style.display = 'none';
+      document.getElementById('login-screen').style.display = 'block';
+      document.getElementById('login-team').value = '';
+    });
+
+    // Boot — load roster sheet on page load
+    loadRosterSheet();
+  </script>
+
+</body>
+</html>
