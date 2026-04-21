@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Karma Rank League – Draft Prospects</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #050508; --card: #13131c; --border: #1e1e2e;
+      --accent: #e8ff3c; --accent2: #ff3c6e; --text: #f0f0f0; --muted: #6b6b80;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: linear-gradient(rgba(232,255,60,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(232,255,60,0.03) 1px,transparent 1px);
+      background-size: 40px 40px; pointer-events: none; z-index: 0;
+    }
+    header { position: relative; z-index: 1; padding: 40px 24px 20px; text-align: center; border-bottom: 1px solid var(--border); }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+    h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px,8vw,72px); letter-spacing: 0.04em; line-height: 1; }
+    h1 span { color: var(--accent); }
+    main { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 32px 16px 80px; }
+
+```
+/* Search */
+.search-wrap { position: relative; margin-bottom: 20px; }
+.search-wrap input {
+  width: 100%; background: var(--card); color: var(--text); border: 1px solid var(--border);
+  border-radius: 12px; padding: 13px 16px 13px 42px; font-family: 'DM Sans', sans-serif;
+  font-size: 15px; font-weight: 500; transition: border-color 0.2s;
+}
+.search-wrap input:focus { outline: none; border-color: var(--accent); }
+.search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; pointer-events: none; }
+
+/* Filter tabs */
+.filter-row { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+.filter-chip { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 99px; padding: 5px 14px; border: 1px solid var(--border); background: var(--card); color: var(--muted); cursor: pointer; transition: all 0.2s; }
+.filter-chip.active { background: var(--accent); color: #050508; border-color: var(--accent); }
+
+/* Prospect count */
+.count-bar { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.count-bar strong { color: var(--text); }
+
+/* Prospect list */
+.prospect-list { display: flex; flex-direction: column; gap: 8px; }
+.prospect-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 16px; transition: border-color 0.15s;
+}
+.prospect-row.drafted { opacity: 0.45; }
+.prospect-row:not(.drafted):hover { border-color: rgba(232,255,60,0.3); }
+
+.prospect-avatar {
+  width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(232,255,60,0.08); border: 1px solid rgba(232,255,60,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', sans-serif; font-size: 14px; color: var(--accent);
+}
+.prospect-row.drafted .prospect-avatar { background: rgba(255,255,255,0.04); border-color: var(--border); color: var(--muted); }
+
+.prospect-info { flex: 1; }
+.prospect-name { font-weight: 700; font-size: 14px; }
+.prospect-status { font-size: 11px; margin-top: 2px; }
+.prospect-status.available { color: var(--muted); }
+.prospect-status.drafted-by { color: #ff9f1c; font-weight: 600; }
+
+.draft-badge {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  border-radius: 99px; padding: 3px 10px; flex-shrink: 0;
+}
+.draft-badge.available { background: rgba(232,255,60,0.08); border: 1px solid rgba(232,255,60,0.2); color: var(--accent); }
+.draft-badge.taken { background: rgba(255,159,28,0.1); border: 1px solid rgba(255,159,28,0.3); color: #ff9f1c; }
+
+/* GM pick panel */
+.gm-panel {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+  padding: 20px; margin-bottom: 20px;
+}
+.gm-panel-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 4px; }
+.gm-panel-sub { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+
+.pick-search-wrap { position: relative; margin-bottom: 10px; }
+.pick-search-wrap input {
+  width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border);
+  border-radius: 10px; padding: 11px 14px; font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500; transition: border-color 0.2s;
+}
+.pick-search-wrap input:focus { outline: none; border-color: var(--accent); }
+
+.pick-suggestions { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 10px; display: none; }
+.pick-suggestion {
+  padding: 10px 14px; font-size: 14px; font-weight: 500; cursor: pointer;
+  border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.15s;
+}
+.pick-suggestion:last-child { border-bottom: none; }
+.pick-suggestion:hover { background: rgba(232,255,60,0.06); color: var(--accent); }
+.pick-suggestion.unavailable { color: var(--muted); cursor: not-allowed; font-style: italic; }
+
+.btn { width: 100%; background: var(--accent); color: #050508; border: none; border-radius: 10px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+.btn:hover { opacity: 0.88; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); margin-top: 8px; }
+.btn-ghost:hover { color: var(--accent2); border-color: var(--accent2); opacity: 1; }
+
+.err { color: var(--accent2); font-size: 13px; font-weight: 600; margin-top: 7px; min-height: 18px; }
+.suc { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 7px; min-height: 18px; }
+
+/* Login */
+.login-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 22px; margin-bottom: 20px; }
+.login-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.05em; margin-bottom: 16px; }
+.label { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; display: block; }
+.field { margin-bottom: 14px; }
+select, input[type=password] {
+  width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border);
+  border-radius: 10px; padding: 11px 14px; font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500; appearance: none; transition: border-color 0.2s;
+}
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b80' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position: right 14px center; padding-right: 36px; }
+select:focus, input:focus { outline: none; border-color: var(--accent); }
+
+.on-clock-banner {
+  background: rgba(255,60,110,0.08); border: 1px solid rgba(255,60,110,0.3);
+  border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.on-clock-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); animation: blink 1.2s ease-in-out infinite; flex-shrink: 0; }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+.on-clock-text { font-size: 13px; font-weight: 700; color: var(--accent2); }
+
+.not-clock-banner {
+  background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 16px; margin-bottom: 16px;
+  font-size: 13px; color: var(--muted);
+}
+
+.spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 5px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+footer { position: relative; z-index: 1; text-align: center; padding: 0 0 40px; }
+.home-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text); text-decoration: none; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid var(--border); background: var(--card); padding: 10px 22px; border-radius: 10px; transition: border-color 0.2s, background 0.2s; }
+.home-link:hover { border-color: var(--accent); background: rgba(232,255,60,0.06); color: var(--accent); }
+```
+
+  </style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Draft Prospects</div>
+  <h1>Karma <span>Rank</span> League</h1>
+</header>
+
+<main>
+
+  <!-- GM Login -->
+
+  <div id="gm-login-wrap">
+    <div class="login-card">
+      <div class="login-title">GM Login</div>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">Log in to submit your pick when you're on the clock.</p>
+      <div class="field">
+        <label class="label">Your Team</label>
+        <select id="gm-team">
+          <option value="">Select your team…</option>
+          <option value="wolves">Wolves</option>
+          <option value="stuntmen">Stuntmen</option>
+          <option value="beasts">Beasts</option>
+          <option value="falcons">Falcons</option>
+          <option value="reapers">Reapers</option>
+          <option value="patriots">Patriots</option>
+          <option value="triple t elite">Triple T Elite</option>
+          <option value="fatties">Fatties</option>
+          <option value="judy hopps fc">Judy Hopps FC</option>
+          <option value="sour patch kids">Sour Patch Kids</option>
+          <option value="la familia">La Familia</option>
+          <option value="predators">Predators</option>
+        </select>
+      </div>
+      <div class="field"><label class="label">Password</label><input type="password" id="gm-pw" placeholder="Enter password…" /></div>
+      <div class="err" id="gm-err"></div>
+      <button class="btn" id="gm-login-btn">Log In</button>
+    </div>
+  </div>
+
+  <!-- GM Pick Panel -->
+
+  <div id="gm-pick-wrap" style="display:none;">
+    <div class="gm-panel">
+      <div class="gm-panel-title" id="gm-panel-title">Your Pick</div>
+      <div class="gm-panel-sub" id="gm-panel-sub"></div>
+      <div id="gm-clock-status"></div>
+      <div id="gm-pick-form" style="display:none;">
+        <div class="pick-search-wrap">
+          <input type="text" id="pick-search" placeholder="Search for a player…" autocomplete="off" />
+        </div>
+        <div class="pick-suggestions" id="pick-suggestions"></div>
+        <input type="hidden" id="selected-player" />
+        <div id="selected-display" style="font-size:13px;color:var(--accent);font-weight:700;margin-bottom:10px;min-height:20px;"></div>
+        <button class="btn" id="submit-pick-btn">Submit Pick</button>
+        <div class="err" id="gm-pick-err"></div>
+        <div class="suc" id="gm-pick-suc"></div>
+      </div>
+    </div>
+    <button class="btn btn-ghost" id="gm-logout-btn">Log Out</button>
+  </div>
+
+  <!-- Prospect List -->
+
+  <div class="search-wrap" style="margin-top:28px;">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="prospect-search" placeholder="Search prospects…" />
+  </div>
+  <div class="filter-row">
+    <div class="filter-chip active" data-filter="all">All</div>
+    <div class="filter-chip" data-filter="available">Available</div>
+    <div class="filter-chip" data-filter="drafted">Drafted</div>
+  </div>
+  <div class="count-bar" id="count-bar"></div>
+  <div class="prospect-list" id="prospect-list">
+    <p style="color:var(--muted);font-size:14px;text-align:center;padding:32px 0;"><span class="spinner"></span> Loading…</p>
+  </div>
+
+</main>
+<footer><a href="index.html" class="home-link">← Home</a></footer>
+
+<script>
+  const _sb = supabase.createClient(
+    'https://orreqxjbzqcjrzuazpco.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycmVxeGpienFjanJ6dWF6cGNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMjU0OTYsImV4cCI6MjA4OTgwMTQ5Nn0.Ew5tD42tqmNMa0Ctf14QoD9UFI1ElGE-Zk0cCdwAoVE'
+  );
+
+  const GM_PASSWORDS = {
+    'wolves':          'change-me',
+    'stuntmen':        'stunt4life',
+    'beasts':          'change-me',
+    'falcons':         'chars',
+    'reapers':         'ngajoo67',
+    'patriots':        'change-me',
+    'triple t elite':  'starofdavid67',
+    'fatties':         'change-me',
+    'judy hopps fc':   'F1caused911',
+    'sour patch kids': 'change-me',
+    'la familia':      'change-me',
+    'predators':       'change-me',
+  };
+
+  const TEAMS = ['Wolves','Stuntmen','Beasts','Falcons','Reapers','Patriots',
+                 'Triple T Elite','Fatties','Judy Hopps FC','Sour Patch Kids','La Familia','Predators'];
+  const ROUNDS = 7;
+  const N = TEAMS.length;
+
+  const PROSPECTS = [
+    '@bigsnook','@nyc','@turner','@ursaal','@kiddo','@grizzy','@galletitas',
+    '@fendforquis','@brandonmiller','@sprecher.rootbeer','@shy','@coby',
+    '@joshminottenjoyer','@yomama99','@kiviranta','@juan69','@snowy','@fplostpro',
+    '@leek','@rockymountain','@mikeyfrozone','@nickk_','@snivy','@aiden','@king',
+    '@gio52','@phx','@cjstroud777','@wyoty','@jn','@rzk','@dexter','@goup65',
+    '@panther15','@qb1fr','@god_did','@burden_10','@jollyoldman','@_joey',
+    '@precision','@dos','@nogwapnolife','@orangewater5','@livesay','@thebigd0g',
+    '@jack','@toogoodethan','@maxypoooo','@vampire','@eternaleclipses','@kuminga',
+    '@zayth','@sports','@gmoney676','@beck','@passionfruit','@forrest','@sua',
+    '@power','@jamesthebot888','@pogba','@dbacks','@turang','@therealsuf','@phly',
+    '@riri','@ok124','@mensahszn','@duolingo','@malikwillis','@pookielukey',
+    '@h2_cold','@frelick','@ysnooze','@rod','@adamiscoolsoya','@bartolozzi',
+    '@xynox121','@drab101','@kizyy','@dtime9','@ne','@fears_','@oli','@avamax',
+    '@cam_schlitter_glazer','@osboti','@elly','@jose57','@bergyfx','@baudin',
+    '@flock.ravens','@gabe','@luther','@sunsfan101','@artifact','@jjsrz',
+    '@yanghansenlover','@fullofopps'
+  ];
+
+  function buildDraftOrder() {
+    const picks = [];
+    for (let r = 1; r <= ROUNDS; r++) {
+      const order = r % 2 === 1 ? [...TEAMS] : [...TEAMS].reverse();
+      order.forEach((team, i) => {
+        picks.push({ pickNum: (r-1)*N + i + 1, round: r, team });
+      });
+    }
+    return picks;
+  }
+
+  const draftOrder = buildDraftOrder();
+  let draftPicks = {}; // { pickNum: player }
+  let draftedPlayers = new Set(); // player names that are drafted
+  let currentGM = null;
+  let activeFilter = 'all';
+  let selectedPlayer = '';
+
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function toDisplay(t) { return t.replace(/\b\w/g, c => c.toUpperCase()); }
+
+  function getNextPick() {
+    for (let i = 1; i <= ROUNDS * N; i++) {
+      if (!draftPicks[i]) return i;
+    }
+    return null;
+  }
+
+  async function loadDraftPicks() {
+    try {
+      const { data } = await _sb.from('draft_picks_board').select('pick_num, player');
+      draftPicks = {};
+      draftedPlayers = new Set();
+      (data || []).forEach(row => {
+        draftPicks[row.pick_num] = row.player;
+        if (row.player) draftedPlayers.add(row.player.toLowerCase());
+      });
+    } catch(e) {}
+    renderProspects();
+    updateGMPanel();
+  }
+
+  // ── Prospects list ────────────────────────────────────────────────────────
+  function renderProspects() {
+    const search = document.getElementById('prospect-search').value.trim().toLowerCase();
+    const list = document.getElementById('prospect-list');
+
+    let filtered = PROSPECTS.filter(p => {
+      if (search && !p.toLowerCase().includes(search)) return false;
+      const isDrafted = draftedPlayers.has(p.toLowerCase());
+      if (activeFilter === 'available' && isDrafted) return false;
+      if (activeFilter === 'drafted' && !isDrafted) return false;
+      return true;
+    });
+
+    document.getElementById('count-bar').innerHTML =
+      `<strong>${filtered.length}</strong> player${filtered.length !== 1 ? 's' : ''} shown`;
+
+    if (!filtered.length) {
+      list.innerHTML = '<p style="color:var(--muted);font-size:14px;text-align:center;padding:32px 0;">No players found.</p>';
+      return;
+    }
+
+    // Find which pick/team drafted each player
+    const pickByPlayer = {};
+    Object.entries(draftPicks).forEach(([pickNum, player]) => {
+      if (player) pickByPlayer[player.toLowerCase()] = { pickNum: parseInt(pickNum), team: draftOrder[parseInt(pickNum)-1]?.team };
+    });
+
+    list.innerHTML = filtered.map(p => {
+      const isDrafted = draftedPlayers.has(p.toLowerCase());
+      const pickInfo = pickByPlayer[p.toLowerCase()];
+      const initials = p.replace('@','').slice(0,2).toUpperCase();
+      return `<div class="prospect-row ${isDrafted ? 'drafted' : ''}">
+        <div class="prospect-avatar">${esc(initials)}</div>
+        <div class="prospect-info">
+          <div class="prospect-name">${esc(p)}</div>
+          <div class="prospect-status ${isDrafted ? 'drafted-by' : 'available'}">
+            ${isDrafted && pickInfo ? `Drafted by ${pickInfo.team} · Pick #${pickInfo.pickNum}` : 'Available'}
+          </div>
+        </div>
+        <span class="draft-badge ${isDrafted ? 'taken' : 'available'}">${isDrafted ? 'Drafted' : 'Available'}</span>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('prospect-search').addEventListener('input', renderProspects);
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeFilter = chip.dataset.filter;
+      renderProspects();
+    });
+  });
+
+  // ── GM Login ──────────────────────────────────────────────────────────────
+  document.getElementById('gm-login-btn').addEventListener('click', () => {
+    const team = document.getElementById('gm-team').value.trim().toLowerCase();
+    const pass = document.getElementById('gm-pw').value;
+    const err  = document.getElementById('gm-err');
+    if (!team) { err.textContent = 'Select your team.'; return; }
+    if (!pass)  { err.textContent = 'Enter your password.'; return; }
+    if (GM_PASSWORDS[team] !== pass) { err.textContent = 'Wrong password.'; return; }
+    err.textContent = '';
+    document.getElementById('gm-pw').value = '';
+    currentGM = team;
+    document.getElementById('gm-login-wrap').style.display = 'none';
+    document.getElementById('gm-pick-wrap').style.display = 'block';
+    document.getElementById('gm-panel-title').textContent = toDisplay(team) + ' — Draft Room';
+    updateGMPanel();
+  });
+  document.getElementById('gm-pw').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('gm-login-btn').click(); });
+
+  document.getElementById('gm-logout-btn').addEventListener('click', () => {
+    currentGM = null;
+    document.getElementById('gm-pick-wrap').style.display = 'none';
+    document.getElementById('gm-login-wrap').style.display = 'block';
+    document.getElementById('gm-team').value = '';
+  });
+
+  function updateGMPanel() {
+    if (!currentGM) return;
+    const nextPick = getNextPick();
+    const statusEl = document.getElementById('gm-clock-status');
+    const formEl = document.getElementById('gm-pick-form');
+    const subEl = document.getElementById('gm-panel-sub');
+
+    // My picks so far
+    const myPicks = draftOrder.filter(p => p.team.toLowerCase() === currentGM && draftPicks[p.pickNum]);
+    subEl.textContent = myPicks.length ? `${myPicks.length} pick${myPicks.length>1?'s':''} made` : 'No picks yet';
+
+    if (!nextPick) {
+      statusEl.innerHTML = '<p style="color:var(--accent);font-weight:700;margin-bottom:12px;">Draft is complete!</p>';
+      formEl.style.display = 'none';
+      return;
+    }
+
+    const nextInfo = draftOrder[nextPick - 1];
+    const isOnClock = nextInfo.team.toLowerCase() === currentGM;
+
+    if (isOnClock) {
+      statusEl.innerHTML = `<div class="on-clock-banner"><span class="on-clock-dot"></span><span class="on-clock-text">You're on the clock! Pick #${nextPick}</span></div>`;
+      formEl.style.display = 'block';
+      // Reset pick search
+      document.getElementById('pick-search').value = '';
+      document.getElementById('selected-player').value = '';
+      document.getElementById('selected-display').textContent = '';
+      document.getElementById('pick-suggestions').style.display = 'none';
+    } else {
+      statusEl.innerHTML = `<div class="not-clock-banner">Next pick: <strong style="color:var(--text);">#${nextPick} — ${nextInfo.team}</strong></div>`;
+      formEl.style.display = 'none';
+    }
+
+    if (myPicks.length) {
+      statusEl.innerHTML += `<div style="margin-bottom:14px;"><div style="font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Your Picks</div>
+        ${myPicks.map(p => `<div style="font-size:13px;padding:5px 0;border-bottom:1px solid var(--border);"><span style="color:var(--accent);font-weight:700;">R${p.round} #${p.pickNum}</span> — ${esc(draftPicks[p.pickNum])}</div>`).join('')}
+      </div>`;
+    }
+  }
+
+  // ── Pick search autocomplete ──────────────────────────────────────────────
+  document.getElementById('pick-search').addEventListener('input', function() {
+    const q = this.value.trim().toLowerCase();
+    const sugg = document.getElementById('pick-suggestions');
+    selectedPlayer = '';
+    document.getElementById('selected-player').value = '';
+    document.getElementById('selected-display').textContent = '';
+
+    if (!q) { sugg.style.display = 'none'; return; }
+
+    const matches = PROSPECTS.filter(p => p.toLowerCase().includes(q)).slice(0, 8);
+    if (!matches.length) { sugg.style.display = 'none'; return; }
+
+    sugg.innerHTML = matches.map(p => {
+      const isDrafted = draftedPlayers.has(p.toLowerCase());
+      return `<div class="pick-suggestion ${isDrafted ? 'unavailable' : ''}" data-player="${esc(p)}">
+        ${esc(p)} ${isDrafted ? '(already drafted)' : ''}
+      </div>`;
+    }).join('');
+    sugg.style.display = 'block';
+
+    sugg.querySelectorAll('.pick-suggestion:not(.unavailable)').forEach(s => {
+      s.addEventListener('click', () => {
+        selectedPlayer = s.dataset.player;
+        document.getElementById('selected-player').value = selectedPlayer;
+        document.getElementById('selected-display').textContent = '✓ Selected: ' + selectedPlayer;
+        document.getElementById('pick-search').value = selectedPlayer;
+        sugg.style.display = 'none';
+      });
+    });
+  });
+
+  // Hide suggestions on outside click
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.pick-search-wrap') && !e.target.closest('.pick-suggestions')) {
+      document.getElementById('pick-suggestions').style.display = 'none';
+    }
+  });
+
+  // ── Submit pick ───────────────────────────────────────────────────────────
+  document.getElementById('submit-pick-btn').addEventListener('click', async () => {
+    if (!currentGM) return;
+    const nextPick = getNextPick();
+    if (!nextPick) return;
+    const pickInfo = draftOrder[nextPick - 1];
+    if (pickInfo.team.toLowerCase() !== currentGM) return;
+
+    const player = document.getElementById('selected-player').value || document.getElementById('pick-search').value.trim();
+    const btn = document.getElementById('submit-pick-btn');
+    const suc = document.getElementById('gm-pick-suc');
+    const err = document.getElementById('gm-pick-err');
+
+    if (!player) { err.textContent = 'Select a player first.'; return; }
+    if (draftedPlayers.has(player.toLowerCase())) { err.textContent = 'That player is already drafted.'; return; }
+
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Submitting…';
+    suc.textContent = ''; err.textContent = '';
+    try {
+      const { error } = await _sb.from('draft_picks_board').upsert(
+        { pick_num: nextPick, player, team: pickInfo.team, round: pickInfo.round },
+        { onConflict: 'pick_num' }
+      );
+      if (error) throw error;
+      draftPicks[nextPick] = player;
+      draftedPlayers.add(player.toLowerCase());
+      suc.textContent = `✓ ${player} drafted!`;
+      setTimeout(() => { suc.textContent = ''; }, 3000);
+      renderProspects();
+      updateGMPanel();
+    } catch(e) { err.textContent = 'Error: ' + e.message; }
+    finally { btn.disabled = false; btn.textContent = 'Submit Pick'; }
+  });
+
+  loadDraftPicks();
+</script>
+
+</body>
+</html>
