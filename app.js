@@ -204,12 +204,15 @@ return {
           ${escapeHtml(name)}
           ${score !== null ? `<span class="boxscore-score">(${escapeHtml(score)})</span>` : ''}
         </div>
-        <div class="boxscore-row header-row"><span>Player</span><span>Points</span><span>Rank</span></div>
+      <div class="boxscore-row header-row">
+  <span>Player</span><span>Rank</span>
+</div>
         ${players.filter(p => String(p.player || '').trim()).map(p => `
           <div class="boxscore-row">
             <span>${escapeHtml(p.player)}</span>
-            <span>${escapeHtml(p.points)}</span>
-            <span>${escapeHtml(p.rank)}</span>
+         <span>
+  ${escapeHtml(p.isCaptain ? (p.rank / 1.5).toFixed(1) : p.rank)}
+</span>
           </div>`).join('') || '<div class="boxscore-empty">No stats yet.</div>'}
       </div>`;
     els.liveDetails.innerHTML =
