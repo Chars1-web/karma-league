@@ -108,8 +108,8 @@ function parseLiveGames(rows) {
   const isCaptain = /\sC$/.test(rawName);
 
   return {
-    player: rawName, // KEEP the "C"
-    rank: Number(r[2]) || 0,
+    player: rawName,
+    rank: isNaN(Number(r[2])) ? 0 : Number(r[2]),
     isCaptain
   };
 }),
@@ -119,7 +119,7 @@ team2Players: players.map(r => {
 
   return {
     player: rawName,
-    rank: Number(r[6]) || 0,
+    rank: isNaN(Number(r[6])) ? 0 : Number(r[6]),
     isCaptain
   };
 }),
