@@ -103,8 +103,26 @@ function parseLiveGames(rows) {
       team1Score: t1.score,
       team2Score: t2.score,
       key: `${normalizeTeamName(t1.name)}|${normalizeTeamName(t2.name)}`,
-      team1Players: players.map(r => ({ player: r[0]||'', points: r[1]||'', rank: r[2]||'' })),
-      team2Players: players.map(r => ({ player: r[4]||'', points: r[5]||'', rank: r[6]||'' })),
+      team1Players: players.map(r => {
+  const rawName = String(r[0] || '').trim();
+  const isCaptain = /\sC$/.test(rawName);
+
+  return {
+    player: rawName, // KEEP the "C"
+    rank: Number(r[2]) || 0,
+    isCaptain
+  };
+}),
+team2Players: players.map(r => {
+  const rawName = String(r[4] || '').trim();
+  const isCaptain = /\sC$/.test(rawName);
+
+  return {
+    player: rawName,
+    rank: Number(r[6]) || 0,
+    isCaptain
+  };
+}),
     });
   });
   return games;
@@ -128,6 +146,13 @@ function getLiveScheduleIndexes(scheduleRows) {
   }
   return { date, team1, team2 };
 }
+function calculateTeamRank(players) {
+  return players.reduce((total, p) => {
+    if (!p.rank) return total;
+    const value = p.isCaptain ? (p.rank / 1.5) : p.rank;
+    return total + value;
+  }, 0);
+}
 function renderLiveScoring(liveRows, scheduleRows) {
   if (!liveRows.length) { els.liveRow.textContent = 'No live scoring available.'; return; }
   const leagueDay = extractLeagueDay(liveRows);
@@ -141,10 +166,16 @@ function renderLiveScoring(liveRows, scheduleRows) {
       const team2 = String(row[idx.team2] || '').trim();
       const key = `${normalizeTeamName(team1)}|${normalizeTeamName(team2)}`;
       const live = liveMap.get(key) || null;
-      return {
-        team1, team2,
-        team1Score: live ? live.team1Score : null,
-        team2Score: live ? live.team2Score : null,
+    const team1Players = live ? live.team1Players : [];
+const team2Players = live ? live.team2Players : [];
+
+return {
+  team1, team2,
+  team1Score: calculateTeamRank(team1Players).toFixed(1),
+  team2Score: calculateTeamRank(team2Players).toFixed(1),
+  team1Players,
+  team2Players,
+};
         team1Players: live ? live.team1Players : [],
         team2Players: live ? live.team2Players : [],
       };
