@@ -166,15 +166,20 @@ function renderLiveScoring(liveRows, scheduleRows) {
       const team2 = String(row[idx.team2] || '').trim();
       const key = `${normalizeTeamName(team1)}|${normalizeTeamName(team2)}`;
       const live = liveMap.get(key) || null;
-    const team1Players = live ? live.team1Players : [];
-const team2Players = live ? live.team2Players : [];
+      const team1Players = live && live.team1Players ? live.team1Players : [];
+const team2Players = live && live.team2Players ? live.team2Players : [];
+
+const t1Score = calculateTeamRank(team1Players);
+const t2Score = calculateTeamRank(team2Players);
 
 return {
-  team1, team2,
-  team1Score: calculateTeamRank(team1Players).toFixed(1),
-  team2Score: calculateTeamRank(team2Players).toFixed(1),
+  team1,
+  team2,
+  team1Score: team1Players.length ? t1Score.toFixed(1) : null,
+  team2Score: team2Players.length ? t2Score.toFixed(1) : null,
   team1Players,
   team2Players,
+};
 };
         team1Players: live ? live.team1Players : [],
         team2Players: live ? live.team2Players : [],
