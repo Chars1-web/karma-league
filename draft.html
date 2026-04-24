@@ -594,7 +594,12 @@ footer { position: relative; z-index: 1; text-align: center; padding: 0 0 40px; 
     const PROSPECTS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTD1vK-OOtJDOwxkzUWU-HzoY6aneXOsqt-JyvzTjZZQrH6jtHBn3Wo6uYxoUXnRmguKNuKemvERuXe/pub?gid=253474499&single=true&output=csv';
   let PROSPECTS = []; // { name, rank }
   let prospectSortKey = 'rank';
-
+function parseCSV(text) {
+  return text
+    .trim()
+    .split("\n")
+    .map(row => row.split(","));
+}
   async function loadProspects() {
     try {
       const res = await fetch(PROSPECTS_URL, { cache: 'no-store' });
