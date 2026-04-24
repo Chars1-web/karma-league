@@ -3,6 +3,7 @@ const SOURCES = {
   "live-scoring": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSe6mW01Q2kgWDNkm-WDUtJziEmKHcpvvP-TKHy84jTjTXE_qIjEQZPDDPb36Xqn5k8t5-kpB6ipq1N/pub?gid=712264809&single=true&output=csv",
   "schedule":     "https://docs.google.com/spreadsheets/d/e/2PACX-1vSe6mW01Q2kgWDNkm-WDUtJziEmKHcpvvP-TKHy84jTjTXE_qIjEQZPDDPb36Xqn5k8t5-kpB6ipq1N/pub?gid=1186488561&single=true&output=csv",
   "roster": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSe6mW01Q2kgWDNkm-WDUtJziEmKHcpvvP-TKHy84jTjTXE_qIjEQZPDDPb36Xqn5k8t5-kpB6ipq1N/pub?gid=0&single=true&output=csv",
+"prospects": "https://docs.google.com/spreadsheets/d/e/2PACX-1vTD1vK-OOtJDOwxkzUWU-HzoY6aneXOsqt-JyvzTjZZQrH6jtHBn3Wo6uYxoUXnRmguKNuKemvERuXe/pub?gid=253474499&single=true&output=csv",
 
 };
 function fetchWithRedirects(url, res, redirectCount) {
