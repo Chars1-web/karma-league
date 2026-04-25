@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Karma Rank League – Rosters</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050508; --card: #13131c; --border: #1e1e2e;
+      --accent: #e8ff3c; --accent2: #ff3c6e; --text: #f0f0f0; --muted: #6b6b80;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: linear-gradient(rgba(232,255,60,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(232,255,60,0.03) 1px,transparent 1px);
+      background-size: 40px 40px; pointer-events: none; z-index: 0;
+    }
+    header { position: relative; z-index: 1; padding: 40px 24px 20px; text-align: center; border-bottom: 1px solid var(--border); }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+    h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px,8vw,72px); letter-spacing: 0.04em; line-height: 1; }
+    h1 span { color: var(--accent); }
+    main { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; padding: 32px 16px 80px; }
+
+```
+.field { margin-bottom: 20px; }
+.section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+select {
+  width: 100%; background: var(--card); color: var(--text); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 16px; font-family: 'DM Sans', sans-serif; font-size: 15px;
+  font-weight: 500; transition: border-color 0.2s; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b80' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px;
+}
+select:focus { outline: none; border-color: var(--accent); }
+
+.team-header { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 0.05em; color: var(--accent); margin-bottom: 16px; }
+
+.player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+.player-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 18px 14px; text-align: center; cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+  position: relative; overflow: hidden;
+}
+.player-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--accent); transform: scaleX(0); transition: transform 0.2s;
+}
+.player-card:hover { border-color: rgba(232,255,60,0.3); transform: translateY(-2px); }
+.player-card:hover::before { transform: scaleX(1); }
+.player-avatar {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: rgba(232,255,60,0.08); border: 1px solid rgba(232,255,60,0.2);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 10px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--accent);
+}
+.player-name { font-weight: 700; font-size: 13px; color: var(--text); line-height: 1.3; word-break: break-all; }
+
+/* Modal */
+#player-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 100; }
+#player-modal[hidden] { display: none; }
+.modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 28px; width: 100%; max-width: 340px; text-align: center; }
+.modal-avatar { width: 64px; height: 64px; border-radius: 50%; background: rgba(232,255,60,0.08); border: 2px solid rgba(232,255,60,0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: var(--accent); }
+.modal-name { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 0.04em; margin-bottom: 4px; }
+.modal-team { font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; }
+.modal-close { width: 100%; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 10px; padding: 10px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.modal-close:hover { color: var(--accent2); border-color: var(--accent2); }
+
+.empty-msg { text-align: center; color: var(--muted); font-size: 14px; padding: 40px 0; }
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+footer { position: relative; z-index: 1; text-align: center; padding: 0 0 40px; }
+.home-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text); text-decoration: none; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid var(--border); background: var(--card); padding: 10px 22px; border-radius: 10px; transition: border-color 0.2s, background 0.2s; }
+.home-link:hover { border-color: var(--accent); background: rgba(232,255,60,0.06); color: var(--accent); }
+```
+
+  </style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Team Rosters</div>
+  <h1>Karma <span>Rank</span> League</h1>
+</header>
+
+<main>
+  <div id="roster-container">
+    <p class="empty-msg"><span class="spinner"></span> Loading rosters…</p>
+  </div>
+</main>
+
+<div id="player-modal" hidden>
+  <div class="modal-card">
+    <div class="modal-avatar" id="modal-avatar"></div>
+    <div class="modal-name" id="modal-name"></div>
+    <div class="modal-team" id="modal-team"></div>
+    <button class="modal-close" id="modal-close">Close</button>
+  </div>
+</div>
+
+<footer><a href="index.html" class="home-link">← Home</a></footer>
+
+<script>
+  const ROSTER_URL = '/api/sheet?name=roster';
+
+  function parseCSV(text) {
+    const rows = []; let row = [], value = '', inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i], next = text[i+1];
+      if (char === '"') { if (inQuotes && next === '"') { value += '"'; i++; } else inQuotes = !inQuotes; continue; }
+      if (char === ',' && !inQuotes) { row.push(value.trim()); value = ''; continue; }
+      if ((char === '\n' || char === '\r') && !inQuotes) {
+        if (char === '\r' && next === '\n') i++;
+        row.push(value.trim());
+        if (row.length > 1 || row[0] !== '') rows.push(row);
+        row = []; value = ''; continue;
+      }
+      value += char;
+    }
+    if (value.length || row.length) { row.push(value.trim()); rows.push(row); }
+    return rows;
+  }
+
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function getInitials(name) {
+    return String(name||'?').replace('@','').trim().split(/[\s._]/).map(w => w[0]).join('').toUpperCase().slice(0,2);
+  }
+
+  function renderRosters(rows) {
+    // Col A (index 0) = player name, Col C (index 2) = team, starting row 2 (index 1)
+    const players = rows.slice(1)
+      .map(r => ({ name: (r[0]||'').trim(), team: (r[2]||'').trim() }))
+      .filter(p => p.name && p.team);
+
+    const teams = {};
+    players.forEach(p => {
+      const key = p.team;
+      if (!teams[key]) teams[key] = [];
+      teams[key].push(p.name);
+    });
+
+    const teamNames = Object.keys(teams).sort();
+    const container = document.getElementById('roster-container');
+
+    if (!teamNames.length) {
+      container.innerHTML = '<p class="empty-msg">No roster data found.</p>';
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="field">
+        <div class="section-label">Select Team</div>
+        <select id="team-select">
+          ${teamNames.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+        </select>
+      </div>
+      <div id="team-display"></div>`;
+
+    const sel = document.getElementById('team-select');
+    const display = document.getElementById('team-display');
+
+    function showTeam(team) {
+      const roster = teams[team] || [];
+      display.innerHTML = `
+        <div class="team-header">${esc(team)}</div>
+        <div class="player-grid">
+          ${roster.map(name => `
+            <div class="player-card" data-name="${esc(name)}" data-team="${esc(team)}">
+              <div class="player-avatar">${esc(getInitials(name))}</div>
+              <div class="player-name">${esc(name)}</div>
+            </div>`).join('')}
+        </div>`;
+
+      display.querySelectorAll('.player-card').forEach(card => {
+        card.addEventListener('click', () => {
+          document.getElementById('modal-avatar').textContent = getInitials(card.dataset.name);
+          document.getElementById('modal-name').textContent = card.dataset.name;
+          document.getElementById('modal-team').textContent = card.dataset.team;
+          document.getElementById('player-modal').hidden = false;
+        });
+      });
+    }
+
+    showTeam(teamNames[0]);
+    sel.addEventListener('change', () => showTeam(sel.value));
+  }
+
+  document.getElementById('modal-close').addEventListener('click', () => {
+    document.getElementById('player-modal').hidden = true;
+  });
+  document.getElementById('player-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('player-modal')) document.getElementById('player-modal').hidden = true;
+  });
+
+  async function loadRoster() {
+    try {
+      const res = await fetch(ROSTER_URL, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+      const rows = parseCSV(await res.text());
+      if (!rows.length) throw new Error('No data found.');
+      renderRosters(rows);
+    } catch(e) {
+      document.getElementById('roster-container').innerHTML = `<p class="empty-msg">Failed to load: ${esc(e.message)}</p>`;
+    }
+  }
+
+  loadRoster();
+</script>
+
+</body>
+</html>
