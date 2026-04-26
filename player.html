@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Player Hub — Karma League</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+body {
+  margin: 0;
+  font-family: "DM Sans", sans-serif;
+  background: #06070b;
+  color: white;
+}
+
+/* HEADER */
+header {
+  text-align: center;
+  padding: 28px;
+  border-bottom: 1px solid #1c2130;
+}
+
+header h1 {
+  font-family: "Bebas Neue";
+  font-size: 52px;
+  margin: 0;
+}
+
+header span { color: #e8ff3c; }
+
+/* CONTROLS */
+.controls {
+  max-width: 900px;
+  margin: auto;
+  padding: 16px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+input, select {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #1c2130;
+  background: #10131a;
+  color: white;
+}
+
+/* GRID */
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 10px 16px 60px;
+}
+
+/* PLAYER LIST */
+.player {
+  display: flex;
+  justify-content: space-between;
+  background: #10131a;
+  border: 1px solid #1c2130;
+  padding: 10px 14px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.player:hover {
+  border-color: #e8ff3c;
+}
+
+.name { font-weight: 700; }
+.team { font-size: 11px; color: #7b8092; }
+.value { font-weight: 700; color: #e8ff3c; }
+
+/* MODAL */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-box {
+  background: #10131a;
+  border: 1px solid #1c2130;
+  padding: 20px;
+  border-radius: 14px;
+  width: 90%;
+  max-width: 600px;
+}
+
+.close {
+  float: right;
+  background: none;
+  border: 1px solid #1c2130;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Player <span>Hub</span></h1>
+</header>
+
+<div class="controls">
+  <input id="search" placeholder="Search player or team..." />
+
+  <select id="sort">
+    <option value="avg">Avg Rank</option>
+    <option value="mean">Mean Rank</option>
+    <option value="median">Median Rank</option>
+    <option value="rel">REL Median</option>
+  </select>
+</div>
+
+<div class="container" id="list"></div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <button class="close" onclick="closeModal()">X</button>
+    <div id="profile"></div>
+  </div>
+</div>
+
+<script>
+
+const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSelmU6cnQuqpr25DszbMhGEal7AzZbyq5m45h1S14nYn4jO5sWsRRz8Mg5wSdGRfLX_SqOVCduvueD/pub?gid=0&single=true&output=csv";
+
+let PLAYERS = [];
+
+/* CSV */
+function parseCSV(text){
+  const rows=[]; let r=[],v="",q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(c=='"'){q=!q;continue;}
+    if(c==","&&!q){r.push(v);v="";continue;}
+    if(c=="\n"&&!q){r.push(v);rows.push(r);r=[];v="";continue;}
+    v+=c;
+  }
+  r.push(v);rows.push(r);
+  return rows;
+}
+
+/* LOAD */
+async function load(){
+  const res = await fetch(URL);
+  const text = await res.text();
+  const rows = parseCSV(text).slice(1);
+
+  PLAYERS = rows.map(r=>{
+    const name=r[0];
+    const team=r[1];
+    const ranks=r.slice(2).map(x=>parseFloat(x)).filter(x=>!isNaN(x));
+
+    return {
+      name,
+      team,
+      ranks,
+      avg: avg(ranks),
+      median: med(ranks)
+    };
+  });
+
+  render();
+}
+
+function avg(a){
+  return a.length ? a.reduce((x,y)=>x+y,0)/a.length : 0;
+}
+
+function med(a){
+  const s=[...a].sort((x,y)=>x-y);
+  const m=Math.floor(s.length/2);
+  return s.length%2 ? s[m] : (s[m-1]+s[m])/2;
+}
+
+function leagueMedian(){
+  const all = PLAYERS.flatMap(p=>p.ranks);
+  return med(all);
+}
+
+/* RENDER */
+function render(){
+  const q=document.getElementById("search").value.toLowerCase();
+  const sort=document.getElementById("sort").value;
+  const lm=leagueMedian();
+
+  let list=PLAYERS.filter(p =>
+    p.name.toLowerCase().includes(q) ||
+    p.team.toLowerCase().includes(q)
+  );
+
+  if(sort==="avg") list.sort((a,b)=>a.avg-b.avg);
+  if(sort==="mean") list.sort((a,b)=>a.avg-b.avg);
+  if(sort==="median") list.sort((a,b)=>a.median-b.median);
+  if(sort==="rel") list.sort((a,b)=>
+    Math.abs(a.median-lm)-Math.abs(b.median-lm)
+  );
+
+  document.getElementById("list").innerHTML =
+    list.map((p,i)=>`
+      <div class="player" onclick="openProfile('${p.name}')">
+        <div>
+          <div class="name">${i+1}. ${p.name}</div>
+          <div class="team">${p.team}</div>
+        </div>
+        <div class="value">
+          ${sort==="avg" ? p.avg.toFixed(2) :
+            sort==="mean" ? p.avg.toFixed(2) :
+            sort==="median" ? p.median.toFixed(2) :
+            (p.median-lm).toFixed(2)}
+        </div>
+      </div>
+    `).join("");
+}
+
+/* PROFILE */
+function openProfile(name){
+  const p=PLAYERS.find(x=>x.name===name);
+  document.getElementById("profile").innerHTML=`
+    <h2 style="color:#e8ff3c;font-family:Bebas Neue;font-size:34px;margin:0">${p.name}</h2>
+    <p style="color:#7b8092;margin-top:5px">${p.team}</p>
+
+    <hr style="border:1px solid #1c2130;margin:12px 0">
+
+    <p>Avg: ${p.avg.toFixed(2)}</p>
+    <p>Median: ${p.median.toFixed(2)}</p>
+    <p>Games: ${p.ranks.length}</p>
+
+    <div style="margin-top:10px;max-height:200px;overflow:auto">
+      ${p.ranks.map((r,i)=>`
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2130;padding:4px 0">
+          <span>Game ${i+1}</span>
+          <span>${r}</span>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  document.getElementById("modal").style.display="flex";
+}
+
+function closeModal(){
+  document.getElementById("modal").style.display="none";
+}
+
+/* EVENTS */
+document.getElementById("search").addEventListener("input",render);
+document.getElementById("sort").addEventListener("change",render);
+
+load();
+
+</script>
+
+</body>
+</html>
