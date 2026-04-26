@@ -166,7 +166,6 @@ function getLiveScheduleIndexes(scheduleRows) {
   }
   return { date, team1, team2 };
 }
-
 function renderLiveScoring(liveRows, scheduleRows) {
   const leagueDay = extractLeagueDay(liveRows);
   const liveGames = parseLiveGames(liveRows);
@@ -188,32 +187,71 @@ function renderLiveScoring(liveRows, scheduleRows) {
   document.getElementById("live-badge").style.display = "inline-flex";
   window._liveGames = games;
 
-  els.liveRow.innerHTML = `<div class="live-list">${games.map((g,i)=>`
+  const formatNum = n => {
+    if (n === null || n === undefined || n === '') return '-';
+    return Number(n).toLocaleString();
+  };
+
+  els.liveRow.innerHTML = `<div class="live-list">${games.map((g,i)=>{
+
+    const s1 = parseFloat(g.team1Score);
+    const s2 = parseFloat(g.team2Score);
+
+    const t1Win = !isNaN(s1) && !isNaN(s2) && s1 < s2;
+    const t2Win = !isNaN(s1) && !isNaN(s2) && s2 < s1;
+
+    return `
     <div class="live-row-item" data-index="${i}">
       <div class="live-matchup">
-        <span class="team-name">${escapeHtml(g.team1)} <span class="team-score">(${g.team1Score || '-'})</span></span>
-        <span class="vs">VS</span>
-        <span class="team-name">${escapeHtml(g.team2)} <span class="team-score">(${g.team2Score || '-'})</span></span>
+
+        <div class="team-side">
+          <div class="team-name">${t1Win ? '🏆 ' : ''}${escapeHtml(g.team1)}</div>
+          <div class="team-score">${formatNum(g.team1Score)}</div>
+        </div>
+
+        <div class="center-info">
+          <div class="vs">VS</div>
+          <div class="tap">Tap For Box Score</div>
+        </div>
+
+        <div class="team-side">
+          <div class="team-name">${t2Win ? '🏆 ' : ''}${escapeHtml(g.team2)}</div>
+          <div class="team-score">${formatNum(g.team2Score)}</div>
+        </div>
+
       </div>
-    </div>`).join('')}</div>`;
+    </div>`;
+  }).join('')}</div>`;
 
   els.liveRow.onclick = e => {
     const rowEl = e.target.closest('.live-row-item');
     if (!rowEl) return;
     const game = games[Number(rowEl.dataset.index)];
 
-    const tbl = (players, name, score) => `
+    const s1 = parseFloat(game.team1Score);
+    const s2 = parseFloat(game.team2Score);
+
+    const t1Win = !isNaN(s1) && !isNaN(s2) && s1 < s2;
+    const t2Win = !isNaN(s1) && !isNaN(s2) && s2 < s1;
+
+    const tbl = (players, name, score, winner) => `
       <div class="boxscore-card">
-        <div class="boxscore-team">${escapeHtml(name)} <span class="boxscore-score">(${score || '-'})</span></div>
+        <div class="boxscore-team">
+          <span>${winner ? '🏆 ' : ''}${escapeHtml(name)}</span>
+          <span class="boxscore-score">${formatNum(score)}</span>
+        </div>
         <div class="boxscore-row header-row"><span>Player</span><span>Rank</span></div>
         ${players.map(p=>`
           <div class="boxscore-row">
             <span>${escapeHtml(p.player)}</span>
-            <span>${p.captain ? p.rank + ' → ' + Math.round(p.score) : p.rank}</span>
+            <span>${p.captain ? p.rank + ' → ' + Math.round(p.score).toLocaleString() : Number(p.rank).toLocaleString()}</span>
           </div>`).join('')}
       </div>`;
 
-    els.liveDetails.innerHTML = tbl(game.team1Players, game.team1, game.team1Score) + tbl(game.team2Players, game.team2, game.team2Score);
+    els.liveDetails.innerHTML =
+      tbl(game.team1Players, game.team1, game.team1Score, t1Win) +
+      tbl(game.team2Players, game.team2, game.team2Score, t2Win);
+
     els.liveModal.hidden = false;
   };
 }
