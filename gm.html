@@ -227,9 +227,9 @@ footer { position: relative; z-index: 1; text-align: center; padding: 0 0 40px; 
         <span class="spinner"></span> Loading roster…
       </div>
       <div id="roster-area" style="display:none;">
-        <div class="max-hint">Select up to <strong>5 players</strong>. First pick is Captain (1.5× boost).</div>
+        <div class="max-hint">Select up to <strong>4 players</strong>. First pick is Captain (/1.5 boost).</div>
         <div class="select-all-row">
-          <span class="selected-count" id="selected-count">0 / 5 selected</span>
+          <span class="selected-count" id="selected-count">0 / 4 selected</span>
         </div>
         <div class="player-list" id="player-list"></div>
         <button class="btn" id="submit-btn">Submit Lineup</button>
@@ -464,7 +464,7 @@ footer { position: relative; z-index: 1; text-align: center; padding: 0 0 40px; 
         const player = card.dataset.player;
         const alreadySelected = selectionOrder.includes(player);
         if (alreadySelected) { selectionOrder = selectionOrder.filter(p => p !== player); }
-        else { if (selectionOrder.length >= 5) return; selectionOrder.push(player); }
+        else { if (selectionOrder.length >= 4) return; selectionOrder.push(player); }
         refreshAllCards(); updateCount();
       });
     }
@@ -482,7 +482,7 @@ footer { position: relative; z-index: 1; text-align: center; padding: 0 0 40px; 
     }
 
     function updateCount() {
-      document.getElementById('selected-count').textContent = `${selectionOrder.length} / 5 selected`;
+      document.getElementById('selected-count').textContent = `${selectionOrder.length} / 4 selected`;
     }
 
     function showSubmittedBadge() {
