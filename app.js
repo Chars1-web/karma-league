@@ -1,4 +1,4 @@
-<script>
+
 function parseCSV(text) {
   const rows = [];
   let row = [], value = "", inQuotes = false;
@@ -239,4 +239,3 @@ document.addEventListener("click",e=>{
 });
 
 loadData();
-</script>
