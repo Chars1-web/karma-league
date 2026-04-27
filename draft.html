@@ -198,15 +198,22 @@ footer { position: relative; z-index: 1; text-align: center; padding: 0 0 40px; 
 
   <!-- Current Draft -->
 
-  <div class="page-section active" id="page-current">
-  <div style="background:rgba(232,255,60,0.08);border:1px solid rgba(232,255,60,0.25);border-radius:12px;padding:14px 18px;margin-bottom:20px;text-align:center;font-size:14px;font-weight:700;color:var(--accent);">Season 1 Draft Has Ended</div>
+ <div class="page-section" id="page-picks">
+  <div class="picks-section">
+    <div class="picks-season">
+      <div class="picks-season-title">Season Draft Pick Ownership</div>
 
-  <div class="draft-info">
-  
+      <div class="picks-wrap">
+        <div id="picks-container">
+          <p style="color:var(--muted);text-align:center;padding:20px;">
+            Loading draft picks...
+          </p>
+        </div>
+      </div>
+
+    </div>
   </div>
-
-  <div class="round-tabs" id="round-tabs"></div>
-  <div id="draft-board"><p style="color:var(--muted);font-size:14px;text-align:center;padding:40px 0;"><span class="spinner"></span> Loading…</p></div>
+</div>
 
   <!-- GM Login -->
 
@@ -752,6 +759,10 @@ footer { position: relative; z-index: 1; text-align: center; padding: 0 0 40px; 
   async function renderPicksTable() {
   const container = document.getElementById('picks-container');
 
+  container.innerHTML = `<p style="color:var(--muted);text-align:center;padding:20px;">
+    <span class="spinner"></span> Loading picks...
+  </p>`;
+
   try {
     const res = await fetch(PICKS_URL);
     const text = await res.text();
@@ -759,82 +770,70 @@ footer { position: relative; z-index: 1; text-align: center; padding: 0 0 40px; 
     const rows = text
       .split('\n')
       .map(r => r.split(',').map(x => x.trim()))
-      .slice(1); // skip header
+      .slice(1);
 
-    const TEAMS_DATA = rows.map(r => {
-      return {
-        team: r[0],
-        picks: {
-          S2FRP: r[1],
-          S2SRP: r[2],
-          S2TRP: r[3],
-          S3FRP: r[4],
-          S3SRP: r[5],
-          S3TRP: r[6],
-        }
-      };
-    });
+    const TEAMS_DATA = rows.map(r => ({
+      team: r[0],
+      picks: {
+        S2FRP: r[1],
+        S2SRP: r[2],
+        S2TRP: r[3],
+        S3FRP: r[4],
+        S3SRP: r[5],
+        S3TRP: r[6],
+      }
+    }));
 
-    function formatOwnership(value, teamName) {
+    const formatOwnership = (value, team) => {
       if (!value) return "—";
-
       value = value.toLowerCase();
 
-      // own pick
-      if (value === "y") return teamName;
-
-      // own + another team
-      if (value.startsWith("y +")) {
-        const other = value.replace("y +", "").trim();
-        return `${teamName}, ${other}`;
-      }
-
-      // only another team owns it
-      if (value.startsWith("+")) {
-        return value.replace("+", "").trim();
-      }
+      if (value === "y") return team;
+      if (value.startsWith("y +")) return `${team}, ${value.replace("y +", "").trim()}`;
+      if (value.startsWith("+")) return value.replace("+", "").trim();
 
       return value;
-    }
+    };
 
     container.innerHTML = `
-      <div class="picks-season">
-        <div class="picks-season-title">Season Draft Pick Ownership</div>
-        <div class="picks-wrap">
-          <table class="picks-table">
-            <thead>
-              <tr>
-                <th>Team</th>
-                <th>S2 FRP</th>
-                <th>S2 SRP</th>
-                <th>S2 TRP</th>
-                <th>S3 FRP</th>
-                <th>S3 SRP</th>
-                <th>S3 TRP</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${TEAMS_DATA.map(t => `
-                <tr>
-                  <td class="t-name">${t.team}</td>
-                  <td>${formatOwnership(t.picks.S2FRP, t.team)}</td>
-                  <td>${formatOwnership(t.picks.S2SRP, t.team)}</td>
-                  <td>${formatOwnership(t.picks.S2TRP, t.team)}</td>
-                  <td>${formatOwnership(t.picks.S3FRP, t.team)}</td>
-                  <td>${formatOwnership(t.picks.S3SRP, t.team)}</td>
-                  <td>${formatOwnership(t.picks.S3TRP, t.team)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <table class="picks-table">
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th>S2 FRP</th>
+            <th>S2 SRP</th>
+            <th>S2 TRP</th>
+            <th>S3 FRP</th>
+            <th>S3 SRP</th>
+            <th>S3 TRP</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${TEAMS_DATA.map(t => `
+            <tr>
+              <td class="t-name">${t.team}</td>
+              <td>${formatOwnership(t.picks.S2FRP, t.team)}</td>
+              <td>${formatOwnership(t.picks.S2SRP, t.team)}</td>
+              <td>${formatOwnership(t.picks.S2TRP, t.team)}</td>
+              <td>${formatOwnership(t.picks.S3FRP, t.team)}</td>
+              <td>${formatOwnership(t.picks.S3SRP, t.team)}</td>
+              <td>${formatOwnership(t.picks.S3TRP, t.team)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
     `;
 
   } catch (e) {
-    container.innerHTML = `<p style="color:red;">Failed to load picks: ${e.message}</p>`;
+    container.innerHTML = `
+      <p style="color:red;text-align:center;">
+        Failed to load picks: ${e.message}
+      </p>
+    `;
   }
 }
+
+
 
   // ── Past Draft Results ────────────────────────────────────────────────────
   async function renderPastDraft() {
