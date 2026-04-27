@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Karma Rank League – Draft</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:#050508; --card:#13131c; --border:#1e1e2e;
+      --accent:#e8ff3c; --text:#f0f0f0; --muted:#6b6b80;
+    }
+
+    body {
+      margin:0;
+      font-family:'DM Sans',sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    header {
+      text-align:center;
+      padding:30px;
+      border-bottom:1px solid var(--border);
+    }
+
+    h1 {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:48px;
+    }
+
+    h1 span { color:var(--accent); }
+
+    main {
+      max-width:900px;
+      margin:auto;
+      padding:20px;
+    }
+
+    /* Tabs */
+    .page-tabs {
+      display:flex;
+      gap:10px;
+      margin-bottom:20px;
+    }
+
+    .page-tab {
+      flex:1;
+      padding:10px;
+      text-align:center;
+      background:var(--card);
+      border:1px solid var(--border);
+      cursor:pointer;
+      color:var(--muted);
+      font-weight:700;
+      text-transform:uppercase;
+      font-size:12px;
+    }
+
+    .page-tab.active {
+      background:var(--accent);
+      color:#000;
+    }
+
+    .page-section { display:none; }
+    .page-section.active { display:block; }
+
+    /* Table */
+    .picks-wrap {
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:12px;
+      overflow:auto;
+    }
+
+    table {
+      width:100%;
+      border-collapse:collapse;
+      min-width:600px;
+    }
+
+    th, td {
+      padding:10px;
+      border-bottom:1px solid var(--border);
+      font-size:13px;
+    }
+
+    th {
+      color:var(--muted);
+      text-transform:uppercase;
+      font-size:11px;
+    }
+
+    .title {
+      font-family:'Bebas Neue';
+      font-size:24px;
+      color:var(--accent);
+      margin-bottom:10px;
+    }
+
+    .muted {
+      color:var(--muted);
+      text-align:center;
+      padding:20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Karma <span>Rank</span> League</h1>
+</header>
+
+<main>
+
+  <!-- TABS -->
+  <div class="page-tabs">
+    <div class="page-tab active" data-page="current">Future Picks</div>
+    <div class="page-tab" data-page="picks">Draft Picks</div>
+  </div>
+
+  <!-- FUTURE PICKS (was current draft) -->
+  <div class="page-section active" id="page-current">
+    <div id="picks-container">
+      <div class="muted">Loading Future Draft Picks...</div>
+    </div>
+  </div>
+
+  <!-- DRAFT PICKS TAB -->
+  <div class="page-section" id="page-picks">
+    <div class="muted">Draft Picks tab ready (you can plug your board here)</div>
+  </div>
+
+</main>
+
+<script>
+const PICKS_URL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vSelmU6cnQuqpr25DszbMhGEal7AzZbyq5m45h1S14nYn4jO5sWsRRz8Mg5wSdGRfLX_SqOVCduvueD/pub?gid=1137257969&single=true&output=csv";
+
+/* ================= TAB SWITCH ================= */
+document.querySelectorAll('.page-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+
+    tab.classList.add('active');
+    document.getElementById('page-' + tab.dataset.page).classList.add('active');
+
+    if (tab.dataset.page === 'current') renderPicksTable();
+  });
+});
+
+/* ================= FUTURE PICKS TABLE ================= */
+async function renderPicksTable() {
+  const container = document.getElementById('picks-container');
+
+  try {
+    const res = await fetch(PICKS_URL);
+    const text = await res.text();
+
+    const rows = text
+      .split('\n')
+      .map(r => r.split(',').map(x => x.trim()))
+      .slice(1);
+
+    const data = rows.map(r => ({
+      team: r[0],
+      picks: {
+        S2FRP: r[1], S2SRP: r[2], S2TRP: r[3],
+        S3FRP: r[4], S3SRP: r[5], S3TRP: r[6]
+      }
+    }));
+
+    function format(v, team) {
+      if (!v) return "—";
+      v = v.toLowerCase();
+      if (v === "y") return team;
+      if (v.startsWith("y +")) return team + ", " + v.replace("y +", "").trim();
+      if (v.startsWith("+")) return v.replace("+", "").trim();
+      return v;
+    }
+
+    container.innerHTML = `
+      <div class="title">Future Draft Pick Ownership</div>
+
+      <div class="picks-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Team</th>
+              <th>S2 FRP</th>
+              <th>S2 SRP</th>
+              <th>S2 TRP</th>
+              <th>S3 FRP</th>
+              <th>S3 SRP</th>
+              <th>S3 TRP</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.map(t => `
+              <tr>
+                <td><b>${t.team}</b></td>
+                <td>${format(t.picks.S2FRP, t.team)}</td>
+                <td>${format(t.picks.S2SRP, t.team)}</td>
+                <td>${format(t.picks.S2TRP, t.team)}</td>
+                <td>${format(t.picks.S3FRP, t.team)}</td>
+                <td>${format(t.picks.S3SRP, t.team)}</td>
+                <td>${format(t.picks.S3TRP, t.team)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+  } catch (e) {
+    container.innerHTML =
+      `<div class="muted" style="color:red;">Error loading data: ${e.message}</div>`;
+  }
+}
+
+/* INIT */
+renderPicksTable();
+</script>
+
+</body>
+</html>
