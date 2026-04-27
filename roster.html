@@ -144,18 +144,18 @@ a:hover{border-color:var(--accent);color:var(--accent);}
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSelmU6cnQuqpr25DszbMhGEal7AzZbyq5m45h1S14nYn4jO5sWsRRz8Mg5wSdGRfLX_SqOVCduvueD/pub?gid=0&single=true&output=csv";
 
 const GMS = {
-  "Beasts": "@padgood",
-  "La Familia": "@corbin",
-  "Patriots": "@reinhart13",
-  "Artemis": "@ursaal",
-  "Stuntmen": "@sb",
-  "Predators": "@zo",
-  "Falcons": "@chars1",
-  "Triple T Elite": "@burress",
-  "Reapers": "@duren",
-  "Wolves": "@pibster",
-  "Judy Hopps FC": "@bain",
-  "Sour Patch Kids": "@f1"
+  "beasts": "@padgood",
+  "la familia": "@corbin",
+  "patriots": "@reinhart13",
+  "artemis": "@ursaal",
+  "stuntmen": "@sb",
+  "predators": "@zo",
+  "falcons": "@chars1",
+  "triple t elite": "@burress",
+  "reapers": "@duren",
+  "wolves": "@pibster",
+  "judy hopps fc": "@bain",
+  "sour patch kids": "@f1"
 };
 
 function parseCSV(text){
@@ -215,7 +215,7 @@ function render(teams){
 
   Object.keys(teams).forEach(team=>{
 
-    const gm = GMS[team] || "—";
+    const gm = GMS[normalize(team)] || "—";
 
     const players = teams[team].map(p=>`
       <div class="player">
@@ -234,6 +234,12 @@ function render(teams){
       </div>
     `;
   });
+}
+function normalize(str){
+  return (str || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g,' ');
 }
 
 load();
