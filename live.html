@@ -411,9 +411,23 @@ const t1Win=g.team1Score<g.team2Score;
 const t2Win=g.team2Score<g.team1Score;
 const diff=Math.abs(g.team1Score-g.team2Score);
 
-const total=g.team1Score+g.team2Score;
-const t1Pct=Math.round((g.team2Score/total)*100);
-const t2Pct=100-t1Pct;
+const total = g.team1Score + g.team2Score;
+let rawT1 = Math.round((g.team2Score / total) * 100);
+let rawT2 = 100 - rawT1;
+
+const now = new Date();
+const hour = now.getHours();
+
+let t1Pct, t2Pct;
+
+if (hour < 17) {
+  // before 5 PM keep projections near center
+  t1Pct = Math.round(50 + ((rawT1 - 50) * 0.18));
+  t2Pct = 100 - t1Pct;
+} else {
+  t1Pct = rawT1;
+  t2Pct = rawT2;
+}
 
 const allPlayers=[...g.team1Players.map(p=>({...p,team:g.team1})),...g.team2Players.map(p=>({...p,team:g.team2}))];
 const top=allPlayers.sort((a,b)=>a.rank-b.rank)[0];
@@ -452,10 +466,17 @@ const best=all.sort((a,b)=>a.rank-b.rank)[0];
 const tbl=(players,name,score,win)=>`
 <div class="boxscore-card">
 <div class="boxscore-team"><span class="${win?'winner':''}">${name}${win?'<span class="trophy">🏆</span>':''}</span><span>${formatNumber(score)}</span></div>
-${players.map(p=>`<div class="boxscore-row">
-<span class="${p.player===best.player?'top-player':''}">${p.player} ${p.captain?'CPT':''}</span>
-<span class="${p.player===best.player?'top-player':''}">${formatNumber(p.rank)}</span>
-</div>`).join('')}
+${players.map(p=>{
+const adjusted = p.captain ? Math.round(p.rank / 1.5) : p.rank;
+const rankDisplay = p.captain
+ ? `${formatNumber(p.rank)} → ${formatNumber(adjusted)}`
+ : formatNumber(p.rank);
+
+return `<div class="boxscore-row">
+<span class="${p.player===best.player?'top-player':''}">${p.player} ${p.captain?'<span style="color:#ffb347;">CPT</span>':''}</span>
+<span class="${p.player===best.player?'top-player':''}">${rankDisplay}</span>
+</div>`;
+}).join('')}
 </div>`;
 
 els.liveDetails.innerHTML=tbl(game.team1Players,game.team1,game.team1Score,game.team1Score<game.team2Score)+tbl(game.team2Players,game.team2,game.team2Score,game.team2Score<game.team1Score);
