@@ -5,96 +5,118 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Karma Rank League — Live Match Center</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
 
 <style>
+:root{
+--bg:#05060a;
+--bg2:#0b0d14;
+--card:#11141d;
+--border:#1f2431;
+--accent:#e8ff3c;
+--red:#ff4a72;
+--green:#4dff9d;
+--text:#f5f5f5;
+--muted:#7f8598;
+--gold:#ffd95c;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
 body{
-margin:0;
-font-family:DM Sans,sans-serif;
-background:#0b0d14;
-color:white;
+font-family:'DM Sans',sans-serif;
+background:var(--bg);
+color:var(--text);
+min-height:100vh;
 }
 
 header{
+padding:40px 20px;
 text-align:center;
-padding:30px;
-border-bottom:1px solid #222;
+border-bottom:1px solid var(--border);
 }
 
 h1{
-font-family:Bebas Neue;
-font-size:60px;
-margin:0;
+font-family:'Bebas Neue';
+font-size:70px;
 }
+h1 span{color:var(--accent);}
 
-h1 span{color:#e8ff3c;}
+main{max-width:800px;margin:auto;padding:20px;}
 
-.tabs{
-display:flex;
-gap:10px;
-padding:20px;
-}
-
+.tabs{display:flex;gap:10px;margin-bottom:20px;}
 .tab{
 flex:1;
 padding:10px;
+background:var(--card);
+border:1px solid var(--border);
+color:var(--muted);
 text-align:center;
-background:#11141d;
-border:1px solid #222;
 cursor:pointer;
-color:#888;
-font-weight:700;
 }
+.tab.active{background:var(--accent);color:#000;}
 
-.tab.active{
-background:#e8ff3c;
-color:black;
-}
-
-.tab-content{display:none;padding:20px;}
+.tab-content{display:none;}
 .tab-content.active{display:block;}
 
-.card{
-background:#11141d;
-border:1px solid #222;
-padding:15px;
-margin-bottom:10px;
-border-radius:10px;
+.live-row-item{
+background:var(--card);
+border:1px solid var(--border);
+padding:18px;
+margin-bottom:12px;
+border-radius:12px;
+cursor:pointer;
 }
 
-.team{
-display:flex;
-justify-content:space-between;
-font-family:Bebas Neue;
-font-size:28px;
+.live-matchup{
+display:grid;
+grid-template-columns:1fr auto 1fr;
+text-align:center;
+align-items:center;
 }
 
-.score{
-color:#e8ff3c;
-}
+.team-name{font-family:'Bebas Neue';font-size:24px;}
+.team-score{color:var(--accent);font-weight:800;}
 
 .odds{
+margin-top:8px;
 font-size:12px;
-margin-top:5px;
-color:#aaa;
+color:var(--muted);
 }
-
-.win{color:#4dff9d;}
-.lose{color:#ff4a72;}
 
 footer{
 text-align:center;
 padding:30px;
 }
-
-a{
-color:white;
+footer a{
+color:var(--text);
 text-decoration:none;
-background:#11141d;
-padding:10px 20px;
+background:var(--card);
+padding:10px 16px;
 border-radius:10px;
-display:inline-block;
-border:1px solid #222;
+border:1px solid var(--border);
+}
+
+/* modal */
+#modal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.85);
+display:none;
+align-items:center;
+justify-content:center;
+padding:20px;
+}
+.modal-box{
+background:var(--card);
+padding:20px;
+border-radius:12px;
+max-width:600px;
+width:100%;
+}
+.close{
+float:right;
+cursor:pointer;
 }
 </style>
 </head>
@@ -105,104 +127,175 @@ border:1px solid #222;
 <h1>Karma <span>Rank</span> League</h1>
 </header>
 
+<main>
+
 <div class="tabs">
-<div class="tab active" onclick="switchTab('live')">Live</div>
-<div class="tab" onclick="switchTab('schedule')">Schedule</div>
+<div class="tab active" data-tab="live">Live</div>
+<div class="tab" data-tab="schedule">Schedule</div>
 </div>
 
-<div id="live" class="tab-content active"></div>
-<div id="schedule" class="tab-content"></div>
+<div id="live" class="tab-content active">
+<div id="live-container">Loading...</div>
+</div>
+
+<div id="schedule" class="tab-content">
+<div id="schedule-container">Loading schedule...</div>
+</div>
+
+</main>
 
 <footer>
-<a href="index.html">← Back Home</a>
+<a href="index.html">← Home</a>
 </footer>
 
-<script>
-// ───────── DEMO DATA (so nothing ever breaks) ─────────
-const liveGames = [
-{team1:"Artemis",team2:"Wolves",score1:48,score2:52},
-{team1:"Beasts",team2:"Falcons",score1:30,score2:22},
-{team1:"Patriots",team2:"Reapers",score1:61,score2:59}
-];
-
-const scheduleGames = [
-{team1:"Artemis",team2:"Wolves"},
-{team1:"Beasts",team2:"Falcons"},
-{team1:"Patriots",team2:"Reapers"},
-{team1:"Judy Hopps FC",team2:"Predators"}
-];
-
-// ───────── ODDS ENGINE ─────────
-function odds(a,b){
-if(a==null||b==null) return {a:50,b:50};
-let diff=a-b;
-let base=50+diff*2;
-base=Math.max(5,Math.min(95,base));
-return {a:Math.round(base),b:100-Math.round(base)};
-}
-
-// ───────── LIVE RENDER ─────────
-function renderLive(){
-let html="";
-
-liveGames.forEach(g=>{
-let o=odds(g.score1,g.score2);
-
-html+=`
-<div class="card">
-<div class="team">
-<div>${g.team1}</div>
-<div class="score">${g.score1}</div>
+<!-- MODAL -->
+<div id="modal">
+<div class="modal-box">
+<span class="close" onclick="closeModal()">✖</span>
+<div id="modal-content"></div>
+</div>
 </div>
 
-<div class="team">
-<div>${g.team2}</div>
-<div class="score">${g.score2}</div>
+<script>
+
+const LIVE_URL = "/api/sheet?name=live-scoring";
+
+const SCHEDULE_URL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vSe6mW01Q2kgWDNkm-WDUtJziEmKHcpvvP-TKHy84jTjTXE_qIjEQZPDDPb36Xqn5k8t5-kpB6ipq1N/pub?gid=1186488561&single=true&output=csv";
+
+// tabs
+document.querySelectorAll(".tab").forEach(t=>{
+t.onclick=()=>{
+document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+document.querySelectorAll(".tab-content").forEach(x=>x.classList.remove("active"));
+
+t.classList.add("active");
+document.getElementById(t.dataset.tab).classList.add("active");
+};
+});
+
+// CSV parser
+function parseCSV(text){
+return text.trim().split("\n").map(r=>r.split(","));
+}
+
+// SIMPLE ODDS ALGORITHM (score only)
+function calcOdds(t1,t2){
+let s1=parseFloat(t1)||0;
+let s2=parseFloat(t2)||0;
+
+let diff=s1-s2;
+
+// base 50/50
+let base=50;
+
+// shift by score diff
+let shift=diff*3;
+
+// clamp
+let p1=Math.max(5,Math.min(95,base+shift));
+let p2=100-p1;
+
+return [p1.toFixed(1),p2.toFixed(1)];
+}
+
+// LIVE LOAD
+async function loadLive(){
+try{
+let res=await fetch(LIVE_URL);
+let txt=await res.text();
+let rows=parseCSV(txt);
+
+let games=[];
+
+// very simple grouping (adjust if needed)
+for(let i=0;i<rows.length;i++){
+let r=rows[i];
+if(!r[0]||!r[1]||!r[2]) continue;
+
+let team1=r[0];
+let team2=r[1];
+let s1=r[2];
+let s2=r[3];
+
+if(team1 && team2){
+games.push({team1,team2,s1,s2});
+}
+}
+
+document.getElementById("live-container").innerHTML=
+games.map((g,i)=>{
+
+let [o1,o2]=calcOdds(g.s1,g.s2);
+
+return `
+<div class="live-row-item" onclick="openGame(${i})">
+<div class="live-matchup">
+<div>
+<div class="team-name">${g.team1}</div>
+<div class="team-score">${g.s1||0}</div>
+</div>
+
+<div>VS</div>
+
+<div>
+<div class="team-name">${g.team2}</div>
+<div class="team-score">${g.s2||0}</div>
+</div>
 </div>
 
 <div class="odds">
-${g.team1} ${o.a}% - ${g.team2} ${o.b}%
+Odds → ${g.team1}: ${o1}% | ${g.team2}: ${o2}%
 </div>
 </div>
 `;
-});
+}).join("") || "No live games";
 
-document.getElementById("live").innerHTML=html;
+window.games=games;
+
+}catch(e){
+document.getElementById("live-container").innerHTML="Failed to load live data";
+}
 }
 
-// ───────── SCHEDULE RENDER ─────────
-function renderSchedule(){
-let html="";
+// MODAL BOX SCORE
+function openGame(i){
+let g=window.games[i];
+if(!g) return;
 
-scheduleGames.forEach(g=>{
-html+=`
-<div class="card">
-<div class="team">
-<div>${g.team1}</div>
-<div style="color:#888;font-size:14px;">VS</div>
-<div>${g.team2}</div>
-</div>
-</div>
+document.getElementById("modal-content").innerHTML=`
+<h2>${g.team1} vs ${g.team2}</h2>
+<p>Score: ${g.s1} - ${g.s2}</p>
 `;
-});
-
-document.getElementById("schedule").innerHTML=html;
+document.getElementById("modal").style.display="flex";
 }
 
-// ───────── TAB SWITCH ─────────
-function switchTab(tab){
-document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-document.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));
-
-if(tab==="live") document.querySelectorAll(".tab")[0].classList.add("active");
-if(tab==="schedule") document.querySelectorAll(".tab")[1].classList.add("active");
-
-document.getElementById(tab).classList.add("active");
+function closeModal(){
+document.getElementById("modal").style.display="none";
 }
 
-// ───────── INIT ─────────
-renderLive();
-renderSchedule();
+// SCHEDULE
+async function loadSchedule(){
+try{
+let res=await fetch(SCHEDULE_URL);
+let txt=await res.text();
+let rows=parseCSV(txt).slice(1);
+
+document.getElementById("schedule-container").innerHTML=
+rows.map(r=>`
+<div class="live-row-item">
+${r[0]} — ${r[1]} vs ${r[2]}
+</div>
+`).join("");
+
+}catch(e){
+document.getElementById("schedule-container").innerHTML="Schedule failed to load";
+}
+}
+
+loadLive();
+loadSchedule();
+
 </script>
 
 </body>
