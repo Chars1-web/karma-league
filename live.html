@@ -401,69 +401,59 @@ text-transform:uppercase;
 </footer>
 
 <script>
-// ── LIVE ODDS SYSTEM ─────────────────────────────────────────────
+// ── LIVE ODDS SYSTEM (SAFE VERSION) ───────────────────────
 
-// Get EST hour (simple approximation using local time)
 function getGameProgressFactor() {
-  const now = new Date();
-  const hour = now.getHours();
-
-  // assume games mostly 7pm–11pm window
-  // 7pm = early, 11pm = late game boost
-  const start = 19; // 7pm
-  const end = 23;
-
+  const hour = new Date().getHours();
+  const start = 19, end = 23;
   let progress = (hour - start) / (end - start);
-  progress = Math.max(0, Math.min(1, progress));
-  return progress;
+  return Math.max(0, Math.min(1, progress));
 }
 
-// Core win probability algorithm
-function calculateWinProbability(score1, score2, team1, team2) {
-  const s1 = parseFloat(score1);
-  const s2 = parseFloat(score2);
+function calculateWinProbability(s1, s2, team1, team2) {
+  const a = parseFloat(s1);
+  const b = parseFloat(s2);
 
-  // if no scores yet
-  if (isNaN(s1) || isNaN(s2)) {
-    return {
-      team1: 50,
-      team2: 50,
-      favorite: "Even"
-    };
+  if (isNaN(a) || isNaN(b)) {
+    return { team1: 50, team2: 50, favorite: "Even" };
   }
 
-  const diff = s1 - s2;
-  const absDiff = Math.abs(diff);
+  const diff = a - b;
+  const abs = Math.abs(diff);
 
-  // time factor (late game increases certainty)
-  const timeFactor = getGameProgressFactor();
+  const time = getGameProgressFactor();
 
-  // base probability from score difference
-  let base = 50 + (diff * 6);
+  let base = 50 + diff * 5;
+  let boost = abs * (8 + time * 20);
 
-  // boost certainty as game progresses
-  let certaintyBoost = absDiff * (10 + timeFactor * 25);
-
-  let p1 = base + certaintyBoost;
+  let p1 = base + boost;
   let p2 = 100 - p1;
 
-  // clamp
   p1 = Math.max(1, Math.min(99, p1));
   p2 = 100 - p1;
-
-  const favorite = p1 > p2 ? team1 : team2;
 
   return {
     team1: Math.round(p1),
     team2: Math.round(p2),
-    favorite
+    favorite: p1 > p2 ? team1 : team2
   };
 }
 
-// ── PATCH LIVE RENDER WITH ODDS ─────────────────────────────────
+// ── PATCH INSIDE ORIGINAL FUNCTION INSTEAD ───────────────
 
-function enhanceGamesWithOdds(games) {
-  return games.map(g => {
+const originalRender = renderLiveScoring;
+
+renderLiveScoring = function(liveRows, scheduleRows) {
+
+  // run original first (IMPORTANT FIX)
+  originalRender(liveRows, scheduleRows);
+
+  // if nothing loaded, stop
+  if (!window._liveGames) return;
+
+  const games = window._liveGames;
+
+  const enhanced = games.map(g => {
     const odds = calculateWinProbability(
       g.team1Score,
       g.team2Score,
@@ -471,139 +461,20 @@ function enhanceGamesWithOdds(games) {
       g.team2
     );
 
-    return {
-      ...g,
-      odds
-    };
+    return { ...g, odds };
   });
-}
 
-// ── OVERRIDE LIVE RENDER FUNCTION ───────────────────────────────
+  // overwrite ONLY the UI (safe)
+  document.querySelectorAll(".live-row-item").forEach((el, i) => {
+    const g = enhanced[i];
+    if (!g) return;
 
-const oldRenderLive = renderLiveScoring;
+    const odds = g.odds;
 
-renderLiveScoring = function(liveRows, scheduleRows) {
+    const left = el.querySelectorAll(".win-prob")[0];
+    const right = el.querySelectorAll(".win-prob")[1];
 
-  if (!liveRows.length) {
-    els.liveRow.textContent = 'No live scoring available.';
-    return;
-  }
-
-  const leagueDay = extractLeagueDay(liveRows);
-  const liveGames = parseLiveGames(liveRows);
-  const liveMap = new Map(liveGames.map(g => [g.key, g]));
-  const idx = getLiveScheduleIndexes(scheduleRows);
-
-  let games = scheduleRows.slice(1)
-    .filter(row => String(row[idx.date] || '').trim() === leagueDay)
-    .map(row => {
-      const team1 = String(row[idx.team1] || '').trim();
-      const team2 = String(row[idx.team2] || '').trim();
-      const key = `${normalizeTeamName(team1)}|${normalizeTeamName(team2)}`;
-      const live = liveMap.get(key) || null;
-
-      return {
-        team1,
-        team2,
-        team1Score: live ? live.team1Score : null,
-        team2Score: live ? live.team2Score : null,
-        team1Players: live ? live.team1Players : [],
-        team2Players: live ? live.team2Players : []
-      };
-    });
-
-  if (!games.length) games = liveGames;
-  if (!games.length) {
-    els.liveRow.textContent = 'No live games found.';
-    return;
-  }
-
-  games = enhanceGamesWithOdds(games);
-
-  const liveBadge = document.getElementById('live-badge');
-  if (liveBadge) liveBadge.style.display = 'inline-block';
-
-  window._liveGames = games;
-
-  els.liveRow.innerHTML = `
-    <div class="live-list">
-      ${games.map((g, i) => {
-
-        const odds = g.odds;
-
-        const team1OddsClass = odds.team1 > odds.team2 ? "favorite" : "underdog";
-        const team2OddsClass = odds.team2 > odds.team1 ? "favorite" : "underdog";
-
-        return `
-        <div class="live-row-item" data-index="${i}">
-
-          <div class="live-matchup">
-
-            <div class="team-side">
-              <span class="team-name">${escapeHtml(g.team1)}</span>
-              ${g.team1Score !== null ? `<span class="team-score">${escapeHtml(g.team1Score)}</span>` : ""}
-              <div class="win-prob ${team1OddsClass}">
-                ${odds.team1}%
-              </div>
-            </div>
-
-            <div class="center-info">
-              <span class="vs">VS</span>
-              <span class="tap">Tap for box score</span>
-              <div class="projected">
-                Fav: ${escapeHtml(odds.favorite)}
-              </div>
-            </div>
-
-            <div class="team-side" style="text-align:right;">
-              <span class="team-name">${escapeHtml(g.team2)}</span>
-              ${g.team2Score !== null ? `<span class="team-score">${escapeHtml(g.team2Score)}</span>` : ""}
-              <div class="win-prob ${team2OddsClass}">
-                ${odds.team2}%
-              </div>
-            </div>
-
-          </div>
-
-        </div>`;
-      }).join('')}
-    </div>
-  `;
-
-  els.liveRow.onclick = event => {
-    const rowEl = event.target.closest('.live-row-item');
-    if (!rowEl) return;
-
-    const game = games[Number(rowEl.dataset.index)];
-    if (!game) return;
-
-    const s1 = parseFloat(game.team1Score);
-    const s2 = parseFloat(game.team2Score);
-
-    const tbl = (players, name, score) => `
-      <div class="boxscore-card">
-        <div class="boxscore-team">
-          <span>${escapeHtml(name)}</span>
-          ${score !== null ? `<span class="boxscore-score">${escapeHtml(score)}</span>` : ''}
-        </div>
-
-        <div class="boxscore-row header-row">
-          <span>Player</span><span>Rank</span>
-        </div>
-
-        ${players.map(p => `
-          <div class="boxscore-row">
-            <span>${escapeHtml(p.player)}${p.captain ? " 🔥" : ""}</span>
-            <span>${escapeHtml(p.rank || "—")}</span>
-          </div>
-        `).join('') || `<div class="boxscore-empty">No stats yet.</div>`}
-      </div>
-    `;
-
-    els.liveDetails.innerHTML =
-      tbl(game.team1Players, game.team1, game.team1Score) +
-      tbl(game.team2Players, game.team2, game.team2Score);
-
-    els.liveModal.hidden = false;
-  };
+    if (left) left.textContent = odds.team1 + "%";
+    if (right) right.textContent = odds.team2 + "%";
+  });
 };
