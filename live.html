@@ -401,7 +401,9 @@ games.push({team1:t1.name,team2:t2.name,team1Players,team2Players,team1Score:sum
 });
 return games;
 }
-
+requestAnimationFrame(()=>{
+   // update all changed score text here
+});
 function renderLiveScoring(liveRows){
 const games=parseLiveGames(liveRows);
 document.getElementById("live-badge").style.display='inline-block';
