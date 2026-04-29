@@ -92,73 +92,87 @@ function extractLeagueDay(rows) {
 
 function parseLiveGames(rows) {
   const games = [];
+  const liveArea = rows.slice(4,49); // rows 5-49 only
 
-  for (let start = 4; start <= rows.length; start += 8) {
-    const block = rows.slice(start, start + 8).map(r => r.slice(0,7));
-    if (!block.length) continue;
+  let currentGame = null;
 
-    let team1Raw = '', team2Raw = '', headerIndex = -1;
+  for (let i = 0; i < liveArea.length; i++) {
+    const row = liveArea[i];
 
-    for (let i = 0; i < block.length; i++) {
-      const left = String(block[i][0] || '').trim();
-      const right = String(block[i][4] || '').trim();
+    const leftText = String(row[0] || '').trim();   // col A
+    const leftRank = String(row[2] || '').trim();   // col C
+    const rightText = String(row[4] || '').trim();  // col E
+    const rightRank = String(row[6] || '').trim();  // col G
 
-      if (
-        left && right &&
-        !left.startsWith('@') &&
-        !right.startsWith('@') &&
-        !left.includes('League Day') &&
-        !right.includes('League Day')
-      ) {
-        team1Raw = left;
-        team2Raw = right;
-        headerIndex = i;
-        break;
+    // MATCHUP HEADER = both sides have text and neither starts with @
+    if (
+      leftText && rightText &&
+      !leftText.startsWith('@') &&
+      !rightText.startsWith('@') &&
+      !leftText.includes('League Day') &&
+      !rightText.includes('League Day')
+    ) {
+      if (currentGame) games.push(currentGame);
+
+      const t1 = parseTeamHeader(leftText);
+      const t2 = parseTeamHeader(rightText);
+
+      currentGame = {
+        team1: t1.name,
+        team2: t2.name,
+        team1Players: [],
+        team2Players: [],
+        key: `${normalizeTeamName(t1.name)}|${normalizeTeamName(t2.name)}`
+      };
+
+      continue;
+    }
+
+    if (!currentGame) continue;
+
+    // LEFT PLAYER
+    if (leftText.startsWith('@')) {
+      const captain = isCaptain(leftText);
+      const rawRank = parseFloat(leftRank);
+
+      if (!isNaN(rawRank)) {
+        currentGame.team1Players.push({
+          player: cleanName(leftText),
+          rank: String(rawRank),
+          score: captain ? rawRank / 1.5 : rawRank,
+          captain
+        });
       }
     }
 
-    if (headerIndex === -1) continue;
+    // RIGHT PLAYER
+    if (rightText.startsWith('@')) {
+      const captain = isCaptain(rightText);
+      const rawRank = parseFloat(rightRank);
 
-    const t1 = parseTeamHeader(team1Raw);
-    const t2 = parseTeamHeader(team2Raw);
-
-    const playerRows = block.slice(headerIndex + 1);
-
-    const buildPlayers = (pRows, nameCol, rankCol) =>
-      pRows.map(r => {
-        const rawName = String(r[nameCol] || '').trim();
-        const rawRank = parseFloat(String(r[rankCol] || '').trim());
-
-        if (!rawName || isNaN(rawRank)) return null;
-
-        const captain = isCaptain(rawName);
-        const name = cleanName(rawName);
-        const score = captain ? rawRank / 1.5 : rawRank;
-
-        return {
-          player: name,
+      if (!isNaN(rawRank)) {
+        currentGame.team2Players.push({
+          player: cleanName(rightText),
           rank: String(rawRank),
-          score,
+          score: captain ? rawRank / 1.5 : rawRank,
           captain
-        };
-      }).filter(Boolean);
-
-    const team1Players = buildPlayers(playerRows,0,2);
-    const team2Players = buildPlayers(playerRows,4,6);
-
-    const sumScore = players =>
-      players.length ? String(Math.round(players.reduce((s,p)=>s+p.score,0))) : null;
-
-    games.push({
-      team1: t1.name,
-      team2: t2.name,
-      team1Score: sumScore(team1Players),
-      team2Score: sumScore(team2Players),
-      key: `${normalizeTeamName(t1.name)}|${normalizeTeamName(t2.name)}`,
-      team1Players,
-      team2Players
-    });
+        });
+      }
+    }
   }
+
+  if (currentGame) games.push(currentGame);
+
+  // calculate totals
+  games.forEach(g => {
+    g.team1Score = g.team1Players.length
+      ? String(Math.round(g.team1Players.reduce((s,p)=>s+p.score,0)))
+      : null;
+
+    g.team2Score = g.team2Players.length
+      ? String(Math.round(g.team2Players.reduce((s,p)=>s+p.score,0)))
+      : null;
+  });
 
   return games;
 }
