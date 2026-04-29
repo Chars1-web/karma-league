@@ -91,56 +91,63 @@ function extractLeagueDay(rows) {
 }
 
 function parseLiveGames(rows) {
-  const RANGES = [
-    "A5:G11","A13:G19","A21:G27","A29:G35","A37:G43",
-    "A45:G51","A53:G59","A61:G67","A69:G75","A77:G83",
-    "A85:G91","A93:G99","A101:G107","A109:G115","A117:G122"
-  ];
-
   const games = [];
-  RANGES.forEach(range => {
-    const block = sliceRange(rows, range);
-    if (!block.length) return;
 
-    let team1Raw = '', team2Raw = '', headerIndex = 0;
+  for (let start = 4; start <= rows.length; start += 8) {
+    const block = rows.slice(start, start + 8).map(r => r.slice(0,7));
+    if (!block.length) continue;
+
+    let team1Raw = '', team2Raw = '', headerIndex = -1;
+
     for (let i = 0; i < block.length; i++) {
-      const c = block[i] || [];
-      const left = String(c[0] || '').trim();
-      const right = String(c[4] || '').trim();
-      if (left && right && !left.startsWith('@') && !right.startsWith('@') &&
-          !left.includes('League Day') && !right.includes('League Day')) {
+      const left = String(block[i][0] || '').trim();
+      const right = String(block[i][4] || '').trim();
+
+      if (
+        left && right &&
+        !left.startsWith('@') &&
+        !right.startsWith('@') &&
+        !left.includes('League Day') &&
+        !right.includes('League Day')
+      ) {
         team1Raw = left;
         team2Raw = right;
         headerIndex = i;
         break;
       }
     }
-    if (!team1Raw || !team2Raw) return;
+
+    if (headerIndex === -1) continue;
 
     const t1 = parseTeamHeader(team1Raw);
     const t2 = parseTeamHeader(team2Raw);
 
-    const playerRows = block.slice(headerIndex + 1)
-      .filter(row => String(row[0] || row[4] || '').trim() !== '');
+    const playerRows = block.slice(headerIndex + 1);
 
-    const buildPlayers = (pRows, nameCol, rankCol) => pRows.map(r => {
-      const rawName = String(r[nameCol] || '').trim();
-      if (!rawName) return null;
-      const captain = isCaptain(rawName);
-      const name = cleanName(rawName);
-      const rawRank = parseFloat(String(r[rankCol] || '').trim());
-      const score = isNaN(rawRank) ? null : (captain ? rawRank / 1.5 : rawRank);
-      return { player: name, rank: isNaN(rawRank) ? '' : String(rawRank), score, captain };
-    }).filter(Boolean);
+    const buildPlayers = (pRows, nameCol, rankCol) =>
+      pRows.map(r => {
+        const rawName = String(r[nameCol] || '').trim();
+        const rawRank = parseFloat(String(r[rankCol] || '').trim());
 
-    const team1Players = buildPlayers(playerRows, 0, 2);
-    const team2Players = buildPlayers(playerRows, 4, 6);
+        if (!rawName || isNaN(rawRank)) return null;
 
-    const sumScore = (players) => {
-      const valid = players.filter(p => p.score !== null);
-      if (!valid.length) return null;
-      return String(Math.round(valid.reduce((s, p) => s + p.score, 0)));
-    };
+        const captain = isCaptain(rawName);
+        const name = cleanName(rawName);
+        const score = captain ? rawRank / 1.5 : rawRank;
+
+        return {
+          player: name,
+          rank: String(rawRank),
+          score,
+          captain
+        };
+      }).filter(Boolean);
+
+    const team1Players = buildPlayers(playerRows,0,2);
+    const team2Players = buildPlayers(playerRows,4,6);
+
+    const sumScore = players =>
+      players.length ? String(Math.round(players.reduce((s,p)=>s+p.score,0))) : null;
 
     games.push({
       team1: t1.name,
@@ -149,9 +156,10 @@ function parseLiveGames(rows) {
       team2Score: sumScore(team2Players),
       key: `${normalizeTeamName(t1.name)}|${normalizeTeamName(t2.name)}`,
       team1Players,
-      team2Players,
+      team2Players
     });
-  });
+  }
+
   return games;
 }
 
