@@ -483,7 +483,7 @@ els.liveDetails.innerHTML=tbl(game.team1Players,game.team1,game.team1Score,game.
 els.liveModal.hidden=false;
 };
 }
-
+fetch(csvURL + "&cache=" + new Date().getTime())
 async function fetchSheet(url){const res=await fetch(url,{cache:'no-store'});return parseCSV(await res.text());}
 async function loadData(){const [live,schedule]=await Promise.all([fetchSheet(LIVE_SCORING_URL),fetchSheet(SCHEDULE_URL)]);renderLiveScoring(live);renderSchedule(schedule);}
 document.addEventListener('click',e=>{if(e.target.matches("[data-close='true']"))els.liveModal.hidden=true;});
