@@ -1,268 +1,298 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Player Hub — Karma League</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karma Rank League - Player Stats</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-body {
-  margin: 0;
-  font-family: "DM Sans", sans-serif;
-  background: #06070b;
-  color: white;
+body{
+    margin:0;
+    background:#050505;
+    color:white;
+    font-family:'DM Sans',sans-serif;
+    padding:20px;
 }
 
-/* HEADER */
-header {
-  text-align: center;
-  padding: 28px;
-  border-bottom: 1px solid #1c2130;
+h1{
+    text-align:center;
+    font-family:'Bebas Neue',sans-serif;
+    font-size:56px;
+    letter-spacing:2px;
+    color:#00e5ff;
+    margin-bottom:20px;
 }
 
-header h1 {
-  font-family: "Bebas Neue";
-  font-size: 52px;
-  margin: 0;
+#searchBar{
+    display:block;
+    margin:0 auto 20px auto;
+    width:300px;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    background:#111;
+    color:white;
+    outline:none;
 }
 
-header span { color: #e8ff3c; }
-
-/* CONTROLS */
-.controls {
-  max-width: 900px;
-  margin: auto;
-  padding: 16px;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+.sort-buttons{
+    text-align:center;
+    margin-bottom:20px;
 }
 
-input, select {
-  flex: 1;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #1c2130;
-  background: #10131a;
-  color: white;
+.sort-buttons button{
+    margin:5px;
+    padding:10px 16px;
+    border:none;
+    border-radius:8px;
+    background:#00e5ff;
+    color:black;
+    font-weight:bold;
+    cursor:pointer;
 }
 
-/* GRID */
-.container {
-  max-width: 900px;
-  margin: auto;
-  padding: 10px 16px 60px;
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:#0d0d0d;
+    box-shadow:0 0 15px rgba(0,229,255,.15);
 }
 
-/* PLAYER LIST */
-.player {
-  display: flex;
-  justify-content: space-between;
-  background: #10131a;
-  border: 1px solid #1c2130;
-  padding: 10px 14px;
-  border-radius: 12px;
-  margin-bottom: 8px;
-  cursor: pointer;
+th,td{
+    padding:12px;
+    text-align:center;
+    border-bottom:1px solid #222;
 }
 
-.player:hover {
-  border-color: #e8ff3c;
+th{
+    background:#111;
+    color:#00e5ff;
+    font-size:18px;
 }
 
-.name { font-weight: 700; }
-.team { font-size: 11px; color: #7b8092; }
-.value { font-weight: 700; color: #e8ff3c; }
-
-/* MODAL */
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
-  display: none;
-  align-items: center;
-  justify-content: center;
+tr:hover{
+    background:#141414;
+    cursor:pointer;
 }
 
-.modal-box {
-  background: #10131a;
-  border: 1px solid #1c2130;
-  padding: 20px;
-  border-radius: 14px;
-  width: 90%;
-  max-width: 600px;
+.player-card{
+    margin-top:30px;
+    background:#0d0d0d;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 0 20px rgba(0,229,255,.2);
+    display:none;
 }
 
-.close {
-  float: right;
-  background: none;
-  border: 1px solid #1c2130;
-  color: white;
-  padding: 6px 10px;
-  border-radius: 8px;
-  cursor: pointer;
+.player-card h2{
+    color:#00e5ff;
+    margin-top:0;
+}
+
+.game-list{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:10px;
+}
+
+.game-box{
+    background:#111;
+    padding:8px 12px;
+    border-radius:8px;
 }
 </style>
 </head>
-
 <body>
 
-<header>
-  <h1>Player <span>Hub</span></h1>
-</header>
+<h1>PLAYER STATS</h1>
 
-<div class="controls">
-  <input id="search" placeholder="Search player or team..." />
+<input type="text" id="searchBar" placeholder="Search Username..." onkeyup="searchPlayers()">
 
-  <select id="sort">
-    <option value="avg">Avg Rank</option>
-    <option value="mean">Mean Rank</option>
-    <option value="median">Median Rank</option>
-    <option value="rel">REL Median</option>
-  </select>
+<div class="sort-buttons">
+    <button onclick="sortPlayers('team')">Sort Team</button>
+    <button onclick="sortPlayers('avg')">Sort Avg Rank</button>
+    <button onclick="sortPlayers('gp')">Sort GP</button>
+    <button onclick="sortPlayers('median')">Sort REL Median</button>
+    <button onclick="sortPlayers('mode')">Sort Mode</button>
 </div>
 
-<div class="container" id="list"></div>
+<table id="statsTable">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Team</th>
+            <th>Avg Rank</th>
+            <th>GP</th>
+            <th>REL Median</th>
+            <th>Mode</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
 
-<!-- MODAL -->
-<div class="modal" id="modal">
-  <div class="modal-box">
-    <button class="close" onclick="closeModal()">X</button>
-    <div id="profile"></div>
-  </div>
-</div>
+<div class="player-card" id="playerCard"></div>
 
 <script>
+const csvURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSelmU6cnQuqpr25DszbMhGEal7AzZbyq5m45h1S14nYn4jO5sWsRRz8Mg5wSdGRfLX_SqOVCduvueD/pub?gid=0&single=true&output=csv";
 
-const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSelmU6cnQuqpr25DszbMhGEal7AzZbyq5m45h1S14nYn4jO5sWsRRz8Mg5wSdGRfLX_SqOVCduvueD/pub?gid=0&single=true&output=csv";
+let players = [];
 
-let PLAYERS = [];
-
-/* CSV */
 function parseCSV(text){
-  const rows=[]; let r=[],v="",q=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i];
-    if(c=='"'){q=!q;continue;}
-    if(c==","&&!q){r.push(v);v="";continue;}
-    if(c=="\n"&&!q){r.push(v);rows.push(r);r=[];v="";continue;}
-    v+=c;
-  }
-  r.push(v);rows.push(r);
-  return rows;
+    const rows = [];
+    let row = [], value = "", inQuotes = false;
+
+    for(let i=0;i<text.length;i++){
+        const char = text[i];
+        const next = text[i+1];
+
+        if(char === '"'){
+            if(inQuotes && next === '"'){
+                value += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if(char === ',' && !inQuotes){
+            row.push(value);
+            value = "";
+        } else if((char === '\n' || char === '\r') && !inQuotes){
+            if(value || row.length){
+                row.push(value);
+                rows.push(row);
+                row = [];
+                value = "";
+            }
+        } else {
+            value += char;
+        }
+    }
+    if(value || row.length){
+        row.push(value);
+        rows.push(row);
+    }
+    return rows;
 }
 
-/* LOAD */
-async function load(){
-  const res = await fetch(URL);
-  const text = await res.text();
-  const rows = parseCSV(text).slice(1);
-
-  PLAYERS = rows.map(r=>{
-    const name=r[0];
-    const team=r[1];
-    const ranks=r.slice(2).map(x=>parseFloat(x)).filter(x=>!isNaN(x));
-
-    return {
-      name,
-      team,
-      ranks,
-      avg: avg(ranks),
-      median: med(ranks)
-    };
-  });
-
-  render();
+function average(arr){
+    return arr.reduce((a,b)=>a+b,0)/arr.length;
 }
 
-function avg(a){
-  return a.length ? a.reduce((x,y)=>x+y,0)/a.length : 0;
+function median(arr){
+    let sorted = [...arr].sort((a,b)=>a-b);
+    let mid = Math.floor(sorted.length/2);
+    return sorted.length%2!==0 ? sorted[mid] : ((sorted[mid-1]+sorted[mid])/2).toFixed(1);
 }
 
-function med(a){
-  const s=[...a].sort((x,y)=>x-y);
-  const m=Math.floor(s.length/2);
-  return s.length%2 ? s[m] : (s[m-1]+s[m])/2;
+function mode(arr){
+    let freq = {};
+    let max = 0;
+    let result = arr[0];
+
+    arr.forEach(n=>{
+        freq[n]=(freq[n]||0)+1;
+        if(freq[n]>max){
+            max=freq[n];
+            result=n;
+        }
+    });
+    return result;
 }
 
-function leagueMedian(){
-  const all = PLAYERS.flatMap(p=>p.ranks);
-  return med(all);
+async function loadStats(){
+    const res = await fetch(csvURL);
+    const text = await res.text();
+    const data = parseCSV(text);
+
+    players = [];
+
+    for(let i=1;i<data.length;i++){ // skip row 1
+        const row = data[i];
+        const username = row[0];
+        const team = row[1];
+
+        const gameRanks = row.slice(2)
+            .map(x=>parseFloat(x))
+            .filter(x=>!isNaN(x));
+
+        if(!username) continue;
+
+        players.push({
+            username,
+            team,
+            games: gameRanks,
+            avg: gameRanks.length ? average(gameRanks).toFixed(1) : "-",
+            gp: gameRanks.length,
+            median: gameRanks.length ? median(gameRanks) : "-",
+            mode: gameRanks.length ? mode(gameRanks) : "-",
+            best: gameRanks.length ? Math.min(...gameRanks) : "-",
+            worst: gameRanks.length ? Math.max(...gameRanks) : "-"
+        });
+    }
+
+    renderTable(players);
 }
 
-/* RENDER */
-function render(){
-  const q=document.getElementById("search").value.toLowerCase();
-  const sort=document.getElementById("sort").value;
-  const lm=leagueMedian();
+function renderTable(data){
+    const tbody = document.querySelector("#statsTable tbody");
+    tbody.innerHTML = "";
 
-  let list=PLAYERS.filter(p =>
-    p.name.toLowerCase().includes(q) ||
-    p.team.toLowerCase().includes(q)
-  );
+    data.forEach(player=>{
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${player.username}</td>
+            <td>${player.team}</td>
+            <td>${player.avg}</td>
+            <td>${player.gp}</td>
+            <td>${player.median}</td>
+            <td>${player.mode}</td>
+        `;
+        tr.onclick = ()=>showPlayer(player);
+        tbody.appendChild(tr);
+    });
+}
 
-  if(sort==="avg") list.sort((a,b)=>a.avg-b.avg);
-  if(sort==="mean") list.sort((a,b)=>a.avg-b.avg);
-  if(sort==="median") list.sort((a,b)=>a.median-b.median);
-  if(sort==="rel") list.sort((a,b)=>
-    Math.abs(a.median-lm)-Math.abs(b.median-lm)
-  );
+function sortPlayers(type){
+    if(type==="team") players.sort((a,b)=>a.team.localeCompare(b.team));
+    if(type==="avg") players.sort((a,b)=>a.avg-b.avg);
+    if(type==="gp") players.sort((a,b)=>b.gp-a.gp);
+    if(type==="median") players.sort((a,b)=>a.median-b.median);
+    if(type==="mode") players.sort((a,b)=>a.mode-b.mode);
 
-  document.getElementById("list").innerHTML =
-    list.map((p,i)=>`
-      <div class="player" onclick="openProfile('${p.name}')">
-        <div>
-          <div class="name">${i+1}. ${p.name}</div>
-          <div class="team">${p.team}</div>
+    renderTable(players);
+}
+
+function searchPlayers(){
+    const val = document.getElementById("searchBar").value.toLowerCase();
+    const filtered = players.filter(p=>p.username.toLowerCase().includes(val));
+    renderTable(filtered);
+}
+
+function showPlayer(player){
+    const card = document.getElementById("playerCard");
+    card.style.display = "block";
+
+    card.innerHTML = `
+        <h2>${player.username}</h2>
+        <p><strong>Team:</strong> ${player.team}</p>
+        <p><strong>Avg Rank:</strong> ${player.avg}</p>
+        <p><strong>Games Played:</strong> ${player.gp}</p>
+        <p><strong>Best Rank:</strong> ${player.best}</p>
+        <p><strong>Worst Rank:</strong> ${player.worst}</p>
+        <p><strong>REL Median:</strong> ${player.median}</p>
+        <p><strong>Mode:</strong> ${player.mode}</p>
+        <h3>Game History</h3>
+        <div class="game-list">
+            ${player.games.map((g,i)=>`<div class="game-box">G${i+1}: ${g}</div>`).join("")}
         </div>
-        <div class="value">
-          ${sort==="avg" ? p.avg.toFixed(2) :
-            sort==="mean" ? p.avg.toFixed(2) :
-            sort==="median" ? p.median.toFixed(2) :
-            (p.median-lm).toFixed(2)}
-        </div>
-      </div>
-    `).join("");
+    `;
 }
 
-/* PROFILE */
-function openProfile(name){
-  const p=PLAYERS.find(x=>x.name===name);
-  document.getElementById("profile").innerHTML=`
-    <h2 style="color:#e8ff3c;font-family:Bebas Neue;font-size:34px;margin:0">${p.name}</h2>
-    <p style="color:#7b8092;margin-top:5px">${p.team}</p>
-
-    <hr style="border:1px solid #1c2130;margin:12px 0">
-
-    <p>Avg: ${p.avg.toFixed(2)}</p>
-    <p>Median: ${p.median.toFixed(2)}</p>
-    <p>Games: ${p.ranks.length}</p>
-
-    <div style="margin-top:10px;max-height:200px;overflow:auto">
-      ${p.ranks.map((r,i)=>`
-        <div style="display:flex;justify-content:space-between;border-bottom:1px solid #1c2130;padding:4px 0">
-          <span>Game ${i+1}</span>
-          <span>${r}</span>
-        </div>
-      `).join("")}
-    </div>
-  `;
-
-  document.getElementById("modal").style.display="flex";
-}
-
-function closeModal(){
-  document.getElementById("modal").style.display="none";
-}
-
-/* EVENTS */
-document.getElementById("search").addEventListener("input",render);
-document.getElementById("sort").addEventListener("change",render);
-
-load();
-
+loadStats();
 </script>
 
 </body>
