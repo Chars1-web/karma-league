@@ -118,45 +118,49 @@ function renderSchedule(rows){
 function parseLiveGames(rows){
   const games=[];
 
-  GAME_RANGES.forEach(range=>{
-    const block=sliceRange(rows,range);
-    if(!block.length)return;
+  const START_ROWS=[5,13,21,29,37,45,53,61,69,77,85,93,101];
 
-    let team1Raw='',team2Raw='',headerIndex=0;
+  START_ROWS.forEach(start=>{
+    const header=rows[start-1];
+    if(!header)return;
 
-    for(let i=0;i<block.length;i++){
-      const left=String(block[i][0]||'').trim();
-      const right=String(block[i][4]||'').trim();
-      if(left&&right){
-        team1Raw=left;
-        team2Raw=right;
-        headerIndex=i;
-        break;
+    const t1=parseTeamHeader(header[0]);
+    const t2=parseTeamHeader(header[4]);
+
+    if(!t1.name||!t2.name)return;
+
+    const team1Players=[];
+    const team2Players=[];
+
+    for(let r=start;r<start+4;r++){
+      const row=rows[r];
+      if(!row)continue;
+
+      const leftRaw=String(row[0]||'').trim();
+      const rightRaw=String(row[4]||'').trim();
+
+      if(leftRaw){
+        const captain=isCaptain(leftRaw);
+        const rank=parseFloat(row[2]);
+        team1Players.push({
+          player:cleanName(leftRaw),
+          rank:isNaN(rank)?null:rank,
+          adj:isNaN(rank)?0:(captain?rank/1.5:rank),
+          captain
+        });
+      }
+
+      if(rightRaw){
+        const captain=isCaptain(rightRaw);
+        const rank=parseFloat(row[6]);
+        team2Players.push({
+          player:cleanName(rightRaw),
+          rank:isNaN(rank)?null:rank,
+          adj:isNaN(rank)?0:(captain?rank/1.5:rank),
+          captain
+        });
       }
     }
-
-    if(!team1Raw||!team2Raw)return;
-
-    const t1=parseTeamHeader(team1Raw);
-    const t2=parseTeamHeader(team2Raw);
-    const playerRows=block.slice(headerIndex+1);
-
-    const build=(nameCol,rankCol)=>playerRows.map(r=>{
-      const raw=String(r[nameCol]||'').trim();
-      if(!raw)return null;
-      const captain=isCaptain(raw);
-      const rank=parseFloat(r[rankCol]);
-      const adj=isNaN(rank)?0:(captain?rank/1.5:rank);
-      return{
-        player:cleanName(raw),
-        rank:isNaN(rank)?null:rank,
-        adj,
-        captain
-      };
-    }).filter(Boolean);
-
-    const team1Players=build(0,2);
-    const team2Players=build(4,6);
 
     const sum=arr=>Math.round(arr.reduce((s,p)=>s+p.adj,0));
 
