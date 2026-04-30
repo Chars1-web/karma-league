@@ -18,20 +18,9 @@ body{
 
 h1{
     text-align:center;
-    font-family:'Bebas Neue',sans-serif;
+    font-family:'Bebas Neue';
     font-size:58px;
     color:#00e5ff;
-}
-
-input{
-    display:block;
-    margin:0 auto 20px auto;
-    width:320px;
-    padding:12px;
-    border:none;
-    border-radius:10px;
-    background:#111;
-    color:white;
 }
 
 table{
@@ -46,24 +35,15 @@ th,td{
     border-bottom:1px solid #222;
 }
 
-th{
-    background:#111;
-    color:#00e5ff;
-}
-
-tr:hover{
-    background:#151515;
-    cursor:pointer;
-}
+th{ color:#00e5ff; background:#111; }
+tr:hover{ background:#151515; cursor:pointer; }
 </style>
 </head>
 <body>
 
 <h1>PLAYER STATS</h1>
 
-<input id="searchBar" placeholder="Search player..." onkeyup="searchPlayers()">
-
-<table>
+<table id="table">
 <thead>
 <tr>
 <th>User</th>
@@ -73,99 +53,97 @@ tr:hover{
 <th>UNR</th>
 </tr>
 </thead>
-<tbody id="body"></tbody>
+<tbody></tbody>
 </table>
 
 <script>
-const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSelmU6cnQuqpr25DszbMhGEal7AzZbyq5m45h1S14nYn4jO5sWsRRz8Mg5wSdGRfLX_SqOVCduvueD/pub?gid=0&single=true&output=csv";
+const csvURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSelmU6cnQuqpr25DszbMhGEal7AzZbyq5m45h1S14nYn4jO5sWsRRz8Mg5wSdGRfLX_SqOVCduvueD/pub?gid=0&single=true&output=csv";
 
-let players=[];
+let players = [];
 
 function parseCSV(text){
-    const rows=[];let r=[],v="",q=false;
+    const rows = [];
+    let row=[],val="",q=false;
+
     for(let i=0;i<text.length;i++){
         const c=text[i],n=text[i+1];
-        if(c=='"'){q=!q;continue;}
-        if(c==','&&!q){r.push(v);v="";continue;}
-        if((c=='\n'||c=='\r')&&!q){
-            if(v||r.length){r.push(v);rows.push(r);r=[];v="";}
+
+        if(c=='"'){ q=!q; continue; }
+
+        if(c=="," && !q){ row.push(val); val=""; continue; }
+
+        if((c=="\n"||c=="\r") && !q){
+            if(val || row.length){ row.push(val); rows.push(row); row=[]; val=""; }
             continue;
         }
-        v+=c;
+
+        val+=c;
     }
-    if(v||r.length) rows.push([...r,v]);
+
+    if(val||row.length){ row.push(val); rows.push(row); }
     return rows;
 }
 
-function calc(arr){
-    const nums=arr.filter(x=>typeof x==="number");
-    const unr=arr.filter(x=>x==="UNR").length;
-    const avg=nums.length?nums.reduce((a,b)=>a+b,0)/nums.length:0;
-    return{avg,gp:arr.length,unr};
+function load(){
+fetch(csvURL)
+.then(r=>r.text())
+.then(t=>{
+const data=parseCSV(t);
+
+players=[];
+
+for(let i=1;i<data.length;i++){
+const r=data[i];
+
+const username=r[0]?.trim();
+const team=r[1]?.trim();
+
+// ONLY C+
+const gamesRaw=r.slice(2);
+
+let games=[];
+let unr=0;
+
+gamesRaw.forEach(g=>{
+g=(g||"").trim();
+
+if(g==="") return;          // ❌ blank = ignore
+if(g==="UNR"){ unr++; games.push("UNR"); return; }
+
+let n=parseFloat(g);
+if(!isNaN(n)) games.push(n);
+});
+
+let nums=games.filter(g=>typeof g==="number");
+
+players.push({
+username,
+team,
+games,
+gp: games.length,
+unr,
+avg: nums.length ? (nums.reduce((a,b)=>a+b,0)/nums.length).toFixed(1) : "-"
+});
 }
 
-async function load(){
-    const res=await fetch(CSV_URL);
-    const data=parseCSV(await res.text());
-
-    players=[];
-
-    for(let i=1;i<data.length;i++){
-        const row=data[i];
-
-        const username=(row[0]||"").trim(); // A
-        const team=(row[1]||"").trim();     // B
-
-        // ✅ ONLY C+ IS GAMES
-        const games=row.slice(2).map(g=>{
-            g=(g||"").trim();
-            if(g==="") return null;
-            if(g.toUpperCase()==="UNR") return "UNR";
-            const n=parseFloat(g);
-            return isNaN(n)?null:n;
-        }).filter(g=>g!==null);
-
-        if(!username) continue;
-
-        const stats=calc(games);
-
-        players.push({
-            username,
-            team,
-            games,
-            avg:stats.avg.toFixed(1),
-            gp:stats.gp,
-            unr:stats.unr
-        });
-    }
-
-    render(players);
+render(players);
+});
 }
 
-function render(list){
-    const body=document.getElementById("body");
-    body.innerHTML="";
+function render(data){
+const tbody=document.querySelector("tbody");
+tbody.innerHTML="";
 
-    list.forEach(p=>{
-        const tr=document.createElement("tr");
-
-        tr.innerHTML=`
-            <td>${p.username}</td>
-            <td>${p.team}</td>
-            <td>${p.avg}</td>
-            <td>${p.gp}</td>
-            <td>${p.unr}</td>
-        `;
-
-        tr.onclick=()=>location.href="profile.html?player="+encodeURIComponent(p.username);
-
-        body.appendChild(tr);
-    });
-}
-
-function searchPlayers(){
-    const v=document.getElementById("searchBar").value.toLowerCase();
-    render(players.filter(p=>p.username.toLowerCase().includes(v)));
+data.forEach(p=>{
+tbody.innerHTML+=`
+<tr>
+<td>${p.username}</td>
+<td>${p.team}</td>
+<td>${p.avg}</td>
+<td>${p.gp}</td>
+<td>${p.unr}</td>
+</tr>`;
+});
 }
 
 load();
