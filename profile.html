@@ -217,19 +217,23 @@ footer { position: relative; z-index: 1; text-align: center; padding: 0 0 40px; 
       const headerRow = rows[0] || [];
       const gameCount = headerRow.slice(2).filter(c => c.toLowerCase().startsWith('game')).length || 20;
 
-      let currentTeam = '';
-      const allPlayers = [];
+const allPlayers = [];
 
-      for (const row of rows) {
-        if (!row.length || !row[0]) continue;
-        const first = row[0].trim();
-        if (isTeamRow(row)) {
-          currentTeam = first.split(' ').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
-          continue;
-        }
-        if (!first.startsWith('@')) continue;
-        allPlayers.push({ username: first, team: currentTeam, games: row.slice(1, 1 + gameCount).map(g => g.trim()) });
-      }
+for (let i = 1; i < rows.length; i++) { // skip row 1
+  const row = rows[i];
+
+  const username = (row[0] || '').trim(); // Column A
+  const team = (row[1] || '').trim();     // Column B
+  const games = row.slice(2).map(g => (g || '').trim()); // Column C+
+
+  if (!username) continue;
+
+  allPlayers.push({
+    username,
+    team,
+    games
+  });
+}
 
       const player = allPlayers.find(p => p.username === targetUsername);
       if (!player) { main.innerHTML = `<p class="empty-msg">Player "${esc(targetUsername)}" not found.</p>`; return; }
