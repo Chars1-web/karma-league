@@ -22,7 +22,6 @@ h1{
     font-family:'Bebas Neue',sans-serif;
     font-size:58px;
     color:#00e5ff;
-    margin-bottom:20px;
 }
 
 #searchBar{
@@ -37,27 +36,10 @@ h1{
     font-size:16px;
 }
 
-.sort-buttons{
-    text-align:center;
-    margin-bottom:20px;
-}
-
-.sort-buttons button{
-    margin:4px;
-    padding:10px 16px;
-    border:none;
-    border-radius:8px;
-    background:#00e5ff;
-    color:black;
-    font-weight:bold;
-    cursor:pointer;
-}
-
 table{
     width:100%;
     border-collapse:collapse;
     background:#0d0d0d;
-    box-shadow:0 0 20px rgba(0,229,255,.15);
 }
 
 th,td{
@@ -66,254 +48,125 @@ th,td{
     border-bottom:1px solid #222;
 }
 
-th{
-    background:#111;
-    color:#00e5ff;
-    font-size:18px;
-}
+th{ color:#00e5ff; background:#111; }
 
-tr:hover{
-    background:#151515;
-    cursor:pointer;
-}
-
-.player-card{
-    margin-top:30px;
-    padding:20px;
-    background:#0d0d0d;
-    border-radius:12px;
-    box-shadow:0 0 20px rgba(0,229,255,.15);
-    display:none;
-}
-
-.player-card h2{
-    color:#00e5ff;
-    margin-top:0;
-}
-
-.game-list{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    margin-top:10px;
-}
-
-.game-box{
-    background:#111;
-    padding:8px 12px;
-    border-radius:8px;
-}
+tr:hover{ background:#151515; cursor:pointer; }
 </style>
 </head>
 <body>
 
 <h1>PLAYER STATS</h1>
 
-<input type="text" id="searchBar" placeholder="Search Username..." onkeyup="searchPlayers()">
+<input id="searchBar" placeholder="Search player..." onkeyup="searchPlayers()">
 
-<div class="sort-buttons">
-    <button onclick="sortPlayers('team')">Sort Team</button>
-    <button onclick="sortPlayers('avg')">Sort Avg Rank</button>
-    <button onclick="sortPlayers('gp')">Sort GP</button>
-    <button onclick="sortPlayers('median')">Sort Median</button>
-    <button onclick="sortPlayers('mode')">Sort Mode</button>
-</div>
-
-<table id="statsTable">
-    <thead>
-        <tr>
-            <th>Username</th>
-            <th>Team</th>
-            <th>Avg Rank</th>
-            <th>GP</th>
-            <th>UNR</th>
-            <th>Median</th>
-            <th>Mode</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
+<table id="table">
+<thead>
+<tr>
+<th>User</th>
+<th>Team</th>
+<th>Avg</th>
+<th>GP</th>
+<th>UNR</th>
+</tr>
+</thead>
+<tbody></tbody>
 </table>
 
-<div class="player-card" id="playerCard"></div>
-
 <script>
-const csvURL = "PUT YOUR CSV LINK HERE";
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSelmU6cnQuqpr25DszbMhGEal7AzZbyq5m45h1S14nYn4jO5sWsRRz8Mg5wSdGRfLX_SqOVCduvueD/pub?gid=0&single=true&output=csv";
 
 let players = [];
 
 function parseCSV(text){
-    const rows = [];
-    let row = [], value = "", inQuotes = false;
+    const rows=[];
+    let row=[],val="",q=false;
 
     for(let i=0;i<text.length;i++){
-        const char = text[i];
-        const next = text[i+1];
+        const c=text[i],n=text[i+1];
 
-        if(char === '"'){
-            if(inQuotes && next === '"'){
-                value += '"';
-                i++;
-            }else{
-                inQuotes = !inQuotes;
-            }
-        }else if(char === ',' && !inQuotes){
-            row.push(value);
-            value = "";
-        }else if((char === '\n' || char === '\r') && !inQuotes){
-            if(value || row.length){
-                row.push(value);
-                rows.push(row);
-                row = [];
-                value = "";
-            }
-        }else{
-            value += char;
+        if(c=='"'){q=!q;continue;}
+        if(c==','&&!q){row.push(val);val="";continue;}
+        if((c=='\n'||c=='\r')&&!q){
+            if(val||row.length){row.push(val);rows.push(row);row=[];val="";}
+            continue;
         }
+        val+=c;
     }
-
-    if(value || row.length){
-        row.push(value);
-        rows.push(row);
-    }
-
+    if(val||row.length) rows.push([...row,val]);
     return rows;
 }
 
-function average(arr){
-    return arr.reduce((a,b)=>a+b,0)/arr.length;
+function calc(games){
+    const nums = games.filter(g=>typeof g==="number");
+    const unr = games.filter(g=>g==="UNR").length;
+    const avg = nums.length ? nums.reduce((a,b)=>a+b,0)/nums.length : 0;
+    return {avg, gp:games.length, unr};
 }
 
-function median(arr){
-    const sorted = [...arr].sort((a,b)=>a-b);
-    const mid = Math.floor(sorted.length/2);
-    return sorted.length%2 ? sorted[mid] : ((sorted[mid-1]+sorted[mid])/2).toFixed(1);
-}
-
-function mode(arr){
-    const freq = {};
-    let max = 0;
-    let result = arr[0];
-
-    arr.forEach(n=>{
-        freq[n]=(freq[n]||0)+1;
-        if(freq[n]>max){
-            max=freq[n];
-            result=n;
-        }
-    });
-
-    return result;
-}
-
-async function loadStats(){
-    const res = await fetch(csvURL);
-    const text = await res.text();
-    const data = parseCSV(text);
+async function load(){
+    const res = await fetch(CSV_URL);
+    const data = parseCSV(await res.text());
 
     players = [];
 
     for(let i=1;i<data.length;i++){
         const row = data[i];
 
-        const username = (row[0] || "").trim();
-        const team = (row[1] || "").trim();
+        // ✅ FIXED COLUMN LOGIC
+        const username = (row[0]||"").trim(); // A
+        const team = (row[1]||"").trim();     // B
+
+        const games = row.slice(2).map(g=>{
+            g=(g||"").trim();
+            if(g==="") return null;
+            if(g.toUpperCase()==="UNR") return "UNR";
+            const n=parseFloat(g);
+            return isNaN(n)?null:n;
+        }).filter(g=>g!==null);
 
         if(!username) continue;
 
-        const rawGames = row.slice(2);
-        const games = [];
-
-        rawGames.forEach(cell=>{
-            const val = (cell || "").trim().toUpperCase();
-
-            if(val === "") return;
-
-            if(val === "UNR"){
-                games.push("UNR");
-            }else{
-                const num = parseFloat(val);
-                if(!isNaN(num)) games.push(num);
-            }
-        });
-
-        const numericGames = games.filter(g=>typeof g==="number");
-        const unrCount = games.filter(g=>g==="UNR").length;
+        const stats = calc(games);
 
         players.push({
             username,
             team,
             games,
-            avg: numericGames.length ? average(numericGames).toFixed(1) : "-",
-            gp: games.length,
-            unr: unrCount,
-            median: numericGames.length ? median(numericGames) : "-",
-            mode: numericGames.length ? mode(numericGames) : "-",
-            best: numericGames.length ? Math.min(...numericGames) : "-",
-            worst: numericGames.length ? Math.max(...numericGames) : "-"
+            avg: stats.avg.toFixed(1),
+            gp: stats.gp,
+            unr: stats.unr
         });
     }
 
-    renderTable(players);
+    render(players);
 }
 
-function renderTable(data){
-    const tbody = document.querySelector("#statsTable tbody");
-    tbody.innerHTML = "";
+function render(list){
+    const tbody=document.querySelector("tbody");
+    tbody.innerHTML="";
 
-    data.forEach(player=>{
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${player.username}</td>
-            <td>${player.team}</td>
-            <td>${player.avg}</td>
-            <td>${player.gp}</td>
-            <td>${player.unr}</td>
-            <td>${player.median}</td>
-            <td>${player.mode}</td>
+    list.forEach(p=>{
+        const tr=document.createElement("tr");
+
+        tr.innerHTML=`
+            <td>${p.username}</td>
+            <td>${p.team}</td>
+            <td>${p.avg}</td>
+            <td>${p.gp}</td>
+            <td>${p.unr}</td>
         `;
-        tr.onclick = ()=>showPlayer(player);
+
+        tr.onclick=()=>location.href="profile.html?player="+encodeURIComponent(p.username);
         tbody.appendChild(tr);
     });
 }
 
-function sortPlayers(type){
-    if(type==="team") players.sort((a,b)=>a.team.localeCompare(b.team));
-    if(type==="avg") players.sort((a,b)=>(a.avg==="-"?999:a.avg)-(b.avg==="-"?999:b.avg));
-    if(type==="gp") players.sort((a,b)=>b.gp-a.gp);
-    if(type==="median") players.sort((a,b)=>(a.median==="-"?999:a.median)-(b.median==="-"?999:b.median));
-    if(type==="mode") players.sort((a,b)=>(a.mode==="-"?999:a.mode)-(b.mode==="-"?999:b.mode));
-
-    renderTable(players);
-}
-
 function searchPlayers(){
-    const val = document.getElementById("searchBar").value.toLowerCase();
-    const filtered = players.filter(p=>p.username.toLowerCase().includes(val));
-    renderTable(filtered);
+    const v=document.getElementById("searchBar").value.toLowerCase();
+    render(players.filter(p=>p.username.toLowerCase().includes(v)));
 }
 
-function showPlayer(player){
-    const card = document.getElementById("playerCard");
-    card.style.display = "block";
-
-    card.innerHTML = `
-        <h2>${player.username}</h2>
-        <p><strong>Team:</strong> ${player.team}</p>
-        <p><strong>Avg Rank:</strong> ${player.avg}</p>
-        <p><strong>Games Played:</strong> ${player.gp}</p>
-        <p><strong>UNR Finishes:</strong> ${player.unr}</p>
-        <p><strong>Best Rank:</strong> ${player.best}</p>
-        <p><strong>Worst Rank:</strong> ${player.worst}</p>
-        <p><strong>Median:</strong> ${player.median}</p>
-        <p><strong>Mode:</strong> ${player.mode}</p>
-        <h3>Game History</h3>
-        <div class="game-list">
-            ${player.games.map((g,i)=>`<div class="game-box">G${i+1}: ${g}</div>`).join("")}
-        </div>
-    `;
-}
-
-loadStats();
+load();
 </script>
 
 </body>
