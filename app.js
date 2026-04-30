@@ -174,8 +174,6 @@ function parseLiveGames(rows){
 }
 
 // ───────────────── LIVE RENDER ─────────────────
-this is what i replace?
-
 function renderLiveScoring(rows){
   const games=parseLiveGames(rows);
   currentGames=games;
@@ -223,7 +221,6 @@ function renderLiveScoring(rows){
     </div>`;
   }).join('')}</div>`;
 }
-
 
 // ───────────────── MODAL ─────────────────
 els.liveRow.addEventListener('click',e=>{
