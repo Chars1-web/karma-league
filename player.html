@@ -95,36 +95,42 @@ players=[];
 for(let i=1;i<data.length;i++){
 const r=data[i];
 
-const username=r[0]?.trim();
-const team=r[1]?.trim();
+const username = r[0]?.trim();
+const team = r[1]?.trim();
 
-// ONLY C+
-const gamesRaw=r.slice(3);
+// C onwards = games
+const gamesRaw = r.slice(2);
 
-let games=[];
-let unr=0;
+let games = [];
+let unr = 0;
 
-gamesRaw.forEach(g=>{
-g=(g||"").trim();
+gamesRaw.forEach(g => {
+    g = (g || "").trim();
 
-if(g==="") return;          // ❌ blank = ignore
-if(g==="UNR"){ unr++; games.push("UNR"); return; }
+    if (g === "") return;
+    if (g === "UNR") {
+        unr++;
+        games.push("UNR");
+        return;
+    }
 
-let n=parseFloat(g);
-if(!isNaN(n)) games.push(n);
+    let n = parseFloat(g);
+    if (!isNaN(n)) games.push(n);
 });
 
-let nums=games.filter(g=>typeof g==="number");
+let nums = games.filter(g => typeof g === "number");
 
 players.push({
-username,
-team,
-games,
-gp: games.length,
-unr,
-avg: nums.length ? (nums.reduce((a,b)=>a+b,0)/nums.length).toFixed(1) : "-"
+    username,
+    team,
+    games,
+    gp: games.length,
+    unr,
+    avg: nums.length
+        ? (nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(1)
+        : "-"
 });
-}
+
 
 render(players);
 });
