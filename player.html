@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Karma Rank League - Player Stats</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
@@ -24,7 +23,7 @@ h1{
     color:#00e5ff;
 }
 
-#searchBar{
+input{
     display:block;
     margin:0 auto 20px auto;
     width:320px;
@@ -33,7 +32,6 @@ h1{
     border-radius:10px;
     background:#111;
     color:white;
-    font-size:16px;
 }
 
 table{
@@ -48,9 +46,15 @@ th,td{
     border-bottom:1px solid #222;
 }
 
-th{ color:#00e5ff; background:#111; }
+th{
+    background:#111;
+    color:#00e5ff;
+}
 
-tr:hover{ background:#151515; cursor:pointer; }
+tr:hover{
+    background:#151515;
+    cursor:pointer;
+}
 </style>
 </head>
 <body>
@@ -59,7 +63,7 @@ tr:hover{ background:#151515; cursor:pointer; }
 
 <input id="searchBar" placeholder="Search player..." onkeyup="searchPlayers()">
 
-<table id="table">
+<table>
 <thead>
 <tr>
 <th>User</th>
@@ -69,54 +73,51 @@ tr:hover{ background:#151515; cursor:pointer; }
 <th>UNR</th>
 </tr>
 </thead>
-<tbody></tbody>
+<tbody id="body"></tbody>
 </table>
 
 <script>
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSelmU6cnQuqpr25DszbMhGEal7AzZbyq5m45h1S14nYn4jO5sWsRRz8Mg5wSdGRfLX_SqOVCduvueD/pub?gid=0&single=true&output=csv";
+const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSelmU6cnQuqpr25DszbMhGEal7AzZbyq5m45h1S14nYn4jO5sWsRRz8Mg5wSdGRfLX_SqOVCduvueD/pub?gid=0&single=true&output=csv";
 
-let players = [];
+let players=[];
 
 function parseCSV(text){
-    const rows=[];
-    let row=[],val="",q=false;
-
+    const rows=[];let r=[],v="",q=false;
     for(let i=0;i<text.length;i++){
         const c=text[i],n=text[i+1];
-
         if(c=='"'){q=!q;continue;}
-        if(c==','&&!q){row.push(val);val="";continue;}
+        if(c==','&&!q){r.push(v);v="";continue;}
         if((c=='\n'||c=='\r')&&!q){
-            if(val||row.length){row.push(val);rows.push(row);row=[];val="";}
+            if(v||r.length){r.push(v);rows.push(r);r=[];v="";}
             continue;
         }
-        val+=c;
+        v+=c;
     }
-    if(val||row.length) rows.push([...row,val]);
+    if(v||r.length) rows.push([...r,v]);
     return rows;
 }
 
-function calc(games){
-    const nums = games.filter(g=>typeof g==="number");
-    const unr = games.filter(g=>g==="UNR").length;
-    const avg = nums.length ? nums.reduce((a,b)=>a+b,0)/nums.length : 0;
-    return {avg, gp:games.length, unr};
+function calc(arr){
+    const nums=arr.filter(x=>typeof x==="number");
+    const unr=arr.filter(x=>x==="UNR").length;
+    const avg=nums.length?nums.reduce((a,b)=>a+b,0)/nums.length:0;
+    return{avg,gp:arr.length,unr};
 }
 
 async function load(){
-    const res = await fetch(CSV_URL);
-    const data = parseCSV(await res.text());
+    const res=await fetch(CSV_URL);
+    const data=parseCSV(await res.text());
 
-    players = [];
+    players=[];
 
     for(let i=1;i<data.length;i++){
-        const row = data[i];
+        const row=data[i];
 
-        // ✅ FIXED COLUMN LOGIC
-        const username = (row[0]||"").trim(); // A
-        const team = (row[1]||"").trim();     // B
+        const username=(row[0]||"").trim(); // A
+        const team=(row[1]||"").trim();     // B
 
-        const games = row.slice(2).map(g=>{
+        // ✅ ONLY C+ IS GAMES
+        const games=row.slice(2).map(g=>{
             g=(g||"").trim();
             if(g==="") return null;
             if(g.toUpperCase()==="UNR") return "UNR";
@@ -126,15 +127,15 @@ async function load(){
 
         if(!username) continue;
 
-        const stats = calc(games);
+        const stats=calc(games);
 
         players.push({
             username,
             team,
             games,
-            avg: stats.avg.toFixed(1),
-            gp: stats.gp,
-            unr: stats.unr
+            avg:stats.avg.toFixed(1),
+            gp:stats.gp,
+            unr:stats.unr
         });
     }
 
@@ -142,8 +143,8 @@ async function load(){
 }
 
 function render(list){
-    const tbody=document.querySelector("tbody");
-    tbody.innerHTML="";
+    const body=document.getElementById("body");
+    body.innerHTML="";
 
     list.forEach(p=>{
         const tr=document.createElement("tr");
@@ -157,7 +158,8 @@ function render(list){
         `;
 
         tr.onclick=()=>location.href="profile.html?player="+encodeURIComponent(p.username);
-        tbody.appendChild(tr);
+
+        body.appendChild(tr);
     });
 }
 
