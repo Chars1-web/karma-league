@@ -92,87 +92,71 @@ function extractLeagueDay(rows) {
 
 function parseLiveGames(rows) {
   const games = [];
-  const liveArea = rows.slice(4,49); // rows 5-49 only
 
-  let currentGame = null;
+  const BLOCKS = [
+    [5, 6, 7, 8, 9],
+    [13, 14, 15, 16, 17],
+    [21, 22, 23, 24, 25],
+    [29, 30, 31, 32, 33],
+    [37, 38, 39, 40, 41],
+    [45, 46, 47, 48, 49]
+  ];
 
-  for (let i = 0; i < liveArea.length; i++) {
-    const row = liveArea[i];
+  for (const block of BLOCKS) {
+    const teamRow = rows[block[0] - 1];
+    const playerRows = block.slice(1).map(r => rows[r - 1]);
 
-    const leftText = String(row[0] || '').trim();   // col A
-    const leftRank = String(row[2] || '').trim();   // col C
-    const rightText = String(row[4] || '').trim();  // col E
-    const rightRank = String(row[6] || '').trim();  // col G
+    const rightTeamRow = teamRow.map((_, i) => rows[block[0] - 1]?.[i + 4]);
 
-    // MATCHUP HEADER = both sides have text and neither starts with @
-    if (
-      leftText && rightText &&
-      !leftText.startsWith('@') &&
-      !rightText.startsWith('@') &&
-      !leftText.includes('League Day') &&
-      !rightText.includes('League Day')
-    ) {
-      if (currentGame) games.push(currentGame);
+    const t1 = parseTeamHeader(teamRow[0]);
+    const t2 = parseTeamHeader(rightTeamRow[4]);
 
-      const t1 = parseTeamHeader(leftText);
-      const t2 = parseTeamHeader(rightText);
+    const team1Players = [];
+    const team2Players = [];
 
-      currentGame = {
-        team1: t1.name,
-        team2: t2.name,
-        team1Players: [],
-        team2Players: [],
-        key: `${normalizeTeamName(t1.name)}|${normalizeTeamName(t2.name)}`
-      };
+    for (const r of playerRows) {
+      if (!r) continue;
 
-      continue;
-    }
+      // LEFT SIDE (A + C)
+      const leftName = String(r[0] || '').trim();
+      const leftRank = parseFloat(r[2]);
 
-    if (!currentGame) continue;
+      if (leftName) {
+        team1Players.push({
+          player: cleanName(leftName),
+          rank: leftRank,
+          score: isNaN(leftRank) ? 0 : (isCaptain(leftName) ? leftRank / 1.5 : leftRank),
+          captain: isCaptain(leftName)
+        });
+      }
 
-    // LEFT PLAYER
-    if (leftText.startsWith('@')) {
-      const captain = isCaptain(leftText);
-      const rawRank = parseFloat(leftRank);
+      // RIGHT SIDE (E + G)
+      const rightName = String(r[4] || '').trim();
+      const rightRank = parseFloat(r[6]);
 
-      if (!isNaN(rawRank)) {
-        currentGame.team1Players.push({
-          player: cleanName(leftText),
-          rank: String(rawRank),
-          score: captain ? rawRank / 1.5 : rawRank,
-          captain
+      if (rightName) {
+        team2Players.push({
+          player: cleanName(rightName),
+          rank: rightRank,
+          score: isNaN(rightRank) ? 0 : (isCaptain(rightName) ? rightRank / 1.5 : rightRank),
+          captain: isCaptain(rightName)
         });
       }
     }
 
-    // RIGHT PLAYER
-    if (rightText.startsWith('@')) {
-      const captain = isCaptain(rightText);
-      const rawRank = parseFloat(rightRank);
+    const sum = arr =>
+      String(Math.round(arr.reduce((s, p) => s + p.score, 0)));
 
-      if (!isNaN(rawRank)) {
-        currentGame.team2Players.push({
-          player: cleanName(rightText),
-          rank: String(rawRank),
-          score: captain ? rawRank / 1.5 : rawRank,
-          captain
-        });
-      }
-    }
+    games.push({
+      team1: t1.name,
+      team2: t2.name,
+      team1Players,
+      team2Players,
+      team1Score: sum(team1Players),
+      team2Score: sum(team2Players),
+      key: `${normalizeTeamName(t1.name)}|${normalizeTeamName(t2.name)}`
+    });
   }
-
-  if (currentGame) games.push(currentGame);
-
-  // calculate totals
-  games.forEach(g => {
-    g.team1Score = g.team1Players.length
-      ? String(Math.round(g.team1Players.reduce((s,p)=>s+p.score,0)))
-      : null;
-
-    g.team2Score = g.team2Players.length
-      ? String(Math.round(g.team2Players.reduce((s,p)=>s+p.score,0)))
-      : null;
-  });
 
   return games;
 }
