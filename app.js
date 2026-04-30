@@ -187,8 +187,14 @@ function renderLiveScoring(rows){
     const total=g.team1Score+g.team2Score||1;
 
     let rawT1=Math.round((g.team2Score/total)*100);
+
     const hour=new Date().getHours();
-    let t1Pct=hour<17?Math.round(50+((rawT1-50)*0.18)):rawT1;
+    let t1Pct=hour<17 ? Math.round(50+((rawT1-50)*0.18)) : rawT1;
+
+    if(t1Pct<5)t1Pct=5;
+    if(t1Pct>95)t1Pct=95;
+
+    const t2Pct=100-t1Pct;
 
     const all=[...g.team1Players,...g.team2Players].filter(x=>x.rank!==null);
     const top=all.sort((a,b)=>a.rank-b.rank)[0];
@@ -197,31 +203,46 @@ function renderLiveScoring(rows){
     <div class="live-row-item" data-index="${i}">
       <div class="live-matchup">
         <div>
-          <div class="team-name ${t1Win?'winner':''}">${g.team1}${t1Win?'<span class="trophy">🏆</span>':''}</div>
+          <div class="team-name ${t1Win?'winner':''}">
+            ${g.team1}${t1Win?'<span class="trophy">🏆</span>':''}
+          </div>
           <div class="team-score">${formatNumber(g.team1Score)}</div>
         </div>
+
         <div>
           <div class="vs">VS</div>
           <div class="diff">Leads by ${formatNumber(diff)}</div>
         </div>
+
         <div style="text-align:right;">
-          <div class="team-name ${t2Win?'winner':''}">${g.team2}${t2Win?'<span class="trophy">🏆</span>':''}</div>
+          <div class="team-name ${t2Win?'winner':''}">
+            ${g.team2}${t2Win?'<span class="trophy">🏆</span>':''}
+          </div>
           <div class="team-score">${formatNumber(g.team2Score)}</div>
         </div>
       </div>
 
       <div class="projection">
-        <div class="proj-label">Projected Winner • ${t1Win?g.team1:g.team2}</div>
-        <div class="bar-wrap">
-          <div class="bar-fill" style="width:${Math.max(t1Pct,100-t1Pct)}%"></div>
+        <div class="proj-label">Projected Winner • ${t1Pct>t2Pct?g.team1:g.team2}</div>
+
+        <div class="proj-flex">
+          <div class="proj-team">${t1Pct}%</div>
+
+          <div class="bar-split">
+            <div class="bar-left" style="width:${t1Pct}%"></div>
+            <div class="bar-right" style="width:${t2Pct}%"></div>
+          </div>
+
+          <div class="proj-team">${t2Pct}%</div>
         </div>
       </div>
 
-      <div class="mvp">⭐ TOP PERFORMER — ${top?top.player:'---'} (${top?formatNumber(top.rank):''})</div>
+      <div class="mvp">
+        ⭐ TOP PERFORMER — ${top?top.player:'---'} (${top?formatNumber(top.rank):''})
+      </div>
     </div>`;
   }).join('')}</div>`;
 }
-
 // ───────────────── MODAL ─────────────────
 els.liveRow.addEventListener('click',e=>{
   const row=e.target.closest('.live-row-item');
