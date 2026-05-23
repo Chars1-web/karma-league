@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RRL Leaderboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <style>
 
 :root {
@@ -56,20 +57,28 @@ h1 {
   letter-spacing: 1px;
 }
 
+/* =======================
+   FIX IS HERE 👇
+======================= */
+
 .table-wrapper {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  overflow-x: auto;        /* ✅ enables horizontal scroll */
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 table {
   width: 100%;
+  min-width: 900px;        /* ✅ forces scroll instead of squish */
   border-collapse: collapse;
 }
+
+/* ======================= */
 
 thead {
   background: linear-gradient(90deg, rgba(29, 34, 48, 0.8), rgba(29, 34, 48, 0.4));
@@ -92,12 +101,7 @@ th {
 }
 
 th:hover {
-  color: var(--accent);
   background: rgba(232, 255, 60, 0.08);
-}
-
-th.sortable:hover {
-  padding-right: 28px;
 }
 
 .sort-icon {
@@ -105,16 +109,6 @@ th.sortable:hover {
   margin-left: 6px;
   font-size: 10px;
   opacity: 0.4;
-  transition: opacity 0.2s;
-}
-
-th:hover .sort-icon {
-  opacity: 0.7;
-}
-
-th.active .sort-icon {
-  opacity: 1;
-  color: var(--accent);
 }
 
 tbody tr {
@@ -124,10 +118,6 @@ tbody tr {
 
 tbody tr:hover {
   background: var(--hover);
-}
-
-tbody tr:last-child {
-  border-bottom: none;
 }
 
 td {
@@ -143,49 +133,26 @@ td {
   text-align: center;
 }
 
-.player-col {
-  font-weight: 600;
-  color: var(--text);
-}
-
 .player-col a {
   color: var(--accent);
   text-decoration: none;
-  transition: color 0.2s ease;
-  border-bottom: 1px solid transparent;
 }
 
 .player-col a:hover {
   color: var(--accent-dark);
-  border-bottom-color: var(--accent);
 }
 
 .team-col {
   color: var(--muted);
-  font-size: 13px;
 }
 
 .stat-col {
   text-align: right;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.5px;
 }
 
 .highlight {
   background: var(--highlight) !important;
   border-left: 4px solid var(--accent);
-}
-
-.highlight td:first-child {
-  padding-left: 10px;
-}
-
-.loading {
-  text-align: center;
-  color: var(--muted);
-  padding: 60px 20px;
-  font-size: 15px;
 }
 
 .back {
@@ -196,49 +163,6 @@ td {
 a {
   color: var(--accent);
   text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-a:hover {
-  color: var(--accent-dark);
-}
-
-.empty-state {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--muted);
-}
-
-.footer-text {
-  text-align: center;
-  color: var(--muted);
-  font-size: 12px;
-  margin-top: 24px;
-  opacity: 0.7;
-}
-
-@media (max-width: 600px) {
-  h1 {
-    font-size: 36px;
-    letter-spacing: 2px;
-  }
-
-  th, td {
-    padding: 10px 8px;
-    font-size: 13px;
-  }
-
-  th {
-    font-size: 10px;
-  }
-
-  .rank-col {
-    width: 40px;
-  }
-
-  .table-wrapper {
-    border-radius: 12px;
-  }
 }
 
 </style>
@@ -252,8 +176,6 @@ a:hover {
 
   <div id="wrap" class="loading">Loading leaderboard...</div>
 
-  <div class="footer-text" id="footer"></div>
-
   <div class="back">
     <a href="index.html">← Back Home</a>
   </div>
@@ -266,67 +188,53 @@ const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS7OR3Jlik3Pn
 const params = new URLSearchParams(window.location.search);
 const selectedUser = (params.get("user") || "").trim();
 
-let allPlayers = [];
-let currentSort = { column: "points", direction: "desc" };
-
 function parseCSV(text) {
   return text.trim().split("\n").map(r => r.split(","));
 }
 
-function sortPlayers(column, direction) {
-  const sorted = [...allPlayers].sort((a, b) => {
-    let aVal = a[column];
-    let bVal = b[column];
+async function load() {
 
-    if (typeof aVal === "number" && typeof bVal === "number") {
-      return direction === "asc" ? aVal - bVal : bVal - aVal;
-    }
+  const res = await fetch(SHEET_URL);
+  const text = await res.text();
 
-    aVal = String(aVal).toLowerCase();
-    bVal = String(bVal).toLowerCase();
-    return direction === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-  });
+  const rows = parseCSV(text).slice(1);
 
-  return sorted;
-}
+  let players = [];
 
-function renderTable(players) {
+  for (const r of rows) {
+
+    const name = (r[1] || "").trim();
+    if (!name) continue;
+
+    players.push({
+      name,
+      team: r[2] || "—",
+      games: Number(r[3]) || 0,
+      rating: Number(r[4]) || 0,
+      points: Number(r[5]) || 0
+    });
+
+  }
+
+  players.sort((a, b) => b.points - a.points);
+
   let html = `
   <div class="table-wrapper">
-    <table>
-      <thead>
-        <tr>
-          <th class="sortable" data-column="rank">
-            Rank
-            <span class="sort-icon ${currentSort.column === "rank" ? "active" : ""}">${currentSort.column === "rank" ? (currentSort.direction === "asc" ? "↑" : "↓") : "⇅"}</span>
-          </th>
-          <th class="sortable" data-column="name">
-            Player
-            <span class="sort-icon ${currentSort.column === "name" ? "active" : ""}">${currentSort.column === "name" ? (currentSort.direction === "asc" ? "↑" : "↓") : "⇅"}</span>
-          </th>
-          <th class="sortable" data-column="team">
-            Team
-            <span class="sort-icon ${currentSort.column === "team" ? "active" : ""}">${currentSort.column === "team" ? (currentSort.direction === "asc" ? "↑" : "↓") : "⇅"}</span>
-          </th>
-          <th class="sortable" data-column="games">
-            Games
-            <span class="sort-icon ${currentSort.column === "games" ? "active" : ""}">${currentSort.column === "games" ? (currentSort.direction === "asc" ? "↑" : "↓") : "⇅"}</span>
-          </th>
-          <th class="sortable" data-column="rating">
-            Rating
-            <span class="sort-icon ${currentSort.column === "rating" ? "active" : ""}">${currentSort.column === "rating" ? (currentSort.direction === "asc" ? "↑" : "↓") : "⇅"}</span>
-          </th>
-          <th class="sortable" data-column="points">
-            Points Forced
-            <span class="sort-icon ${currentSort.column === "points" ? "active" : ""}">${currentSort.column === "points" ? (currentSort.direction === "asc" ? "↑" : "↓") : "⇅"}</span>
-          </th>
-        </tr>
-      </thead>
-      <tbody>
+  <table>
+    <tr>
+      <th>Rank</th>
+      <th>Player</th>
+      <th>Team</th>
+      <th>Games</th>
+      <th>Rating</th>
+      <th>Points Forced</th>
+    </tr>
   `;
 
   players.forEach((p, i) => {
+
     const isSelected = p.name === selectedUser;
+
     html += `
       <tr class="${isSelected ? "highlight" : ""}">
         <td class="rank-col">${i + 1}</td>
@@ -343,61 +251,9 @@ function renderTable(players) {
     `;
   });
 
-  html += `
-      </tbody>
-    </table>
-  </div>
-  `;
+  html += `</table></div>`;
 
   document.getElementById("wrap").innerHTML = html;
-  document.getElementById("footer").textContent = `Showing ${players.length} player${players.length !== 1 ? "s" : ""}`;
-
-  // Attach click handlers to headers
-  document.querySelectorAll("th.sortable").forEach(th => {
-    th.addEventListener("click", () => {
-      const column = th.dataset.column;
-      if (currentSort.column === column) {
-        currentSort.direction = currentSort.direction === "asc" ? "desc" : "asc";
-      } else {
-        currentSort.column = column;
-        currentSort.direction = column === "name" || column === "team" ? "asc" : "desc";
-      }
-      const sorted = sortPlayers(column, currentSort.direction);
-      renderTable(sorted);
-    });
-  });
-}
-
-async function load() {
-  try {
-    const res = await fetch(SHEET_URL);
-    const text = await res.text();
-    const rows = parseCSV(text).slice(1);
-
-    allPlayers = [];
-
-    for (const r of rows) {
-      const name = (r[1] || "").trim();
-      if (!name) continue;
-
-      allPlayers.push({
-        rank: allPlayers.length + 1,
-        name,
-        team: r[2] || "—",
-        games: Number(r[3]) || 0,
-        rating: Number(r[4]) || 0,
-        points: Number(r[5]) || 0
-      });
-    }
-
-    // Sort by points by default
-    const sorted = sortPlayers("points", "desc");
-    renderTable(sorted);
-
-  } catch (error) {
-    document.getElementById("wrap").innerHTML = `<div class="empty-state">Failed to load leaderboard. Please try again later.</div>`;
-    console.error(error);
-  }
 }
 
 load();
