@@ -1,286 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RRL – Transactions</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RRL – Transactions</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    :root {
-      --bg: #050508;
-      --card: #13131c;
-      --border: #1e1e2e;
-      --accent: #00e5ff;
-      --accent2: #ff3c6e;
-      --text: #f0f0f0;
-      --muted: #6b6b80;
-    }
+<style>
+:root {
+  --bg:#050508;
+  --card:#13131c;
+  --border:#1e1e2e;
+  --accent:#00e5ff;
+  --muted:#6b6b80;
+}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  margin:0;
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:white;
+}
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
-    }
+header {
+  text-align:center;
+  padding:40px 20px 20px;
+  border-bottom:1px solid var(--border);
+}
 
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-      z-index: 0;
-    }
+h1 {
+  font-family:'Bebas Neue';
+  font-size:60px;
+  color:var(--accent);
+}
 
-    header {
-      position: relative;
-      z-index: 1;
-      padding: 40px 24px 20px;
-      text-align: center;
-      border-bottom: 1px solid var(--border);
-    }
+main {
+  max-width:650px;
+  margin:0 auto;
+  padding:30px 16px;
+}
 
-    .eyebrow {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 10px;
-    }
+.card {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:20px;
+  margin-bottom:16px;
+}
 
-    h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(36px,8vw,72px);
-      letter-spacing: 0.04em;
-    }
+label {
+  font-size:11px;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
 
-    h1 span { color: var(--accent); }
+input,select,textarea {
+  width:100%;
+  margin-top:6px;
+  margin-bottom:12px;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#0a0a0f;
+  color:white;
+}
 
-    main {
-      position: relative;
-      z-index: 1;
-      max-width: 640px;
-      margin: 0 auto;
-      padding: 32px 16px 80px;
-    }
+button {
+  width:100%;
+  padding:12px;
+  background:var(--accent);
+  border:none;
+  border-radius:10px;
+  font-weight:700;
+  cursor:pointer;
+  color:#000;
+}
 
-    .tabs { display:flex; gap:8px; margin-bottom:28px; }
+.tx {
+  background:#0a0a0f;
+  border:1px solid var(--border);
+  padding:14px;
+  border-radius:10px;
+  margin-bottom:10px;
+}
 
-    .tab {
-      flex:1;
-      padding:11px;
-      text-align:center;
-      font-size:12px;
-      font-weight:700;
-      text-transform:uppercase;
-      border-radius:10px;
-      border:1px solid var(--border);
-      background:var(--card);
-      color:var(--muted);
-      cursor:pointer;
-    }
+.badge {
+  font-size:10px;
+  text-transform:uppercase;
+  color:var(--accent);
+}
 
-    .tab.active {
-      background:var(--accent);
-      color:#050508;
-      border-color:var(--accent);
-    }
-
-    .tab-content { display:none; }
-    .tab-content.active { display:block; }
-
-    .card {
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:22px;
-      margin-bottom:16px;
-    }
-
-    .card-title {
-      font-family:'Bebas Neue';
-      font-size:22px;
-      margin-bottom:14px;
-      letter-spacing:0.05em;
-    }
-
-    input, select, textarea {
-      width:100%;
-      padding:11px 14px;
-      border-radius:10px;
-      border:1px solid var(--border);
-      background:var(--bg);
-      color:var(--text);
-      margin-bottom:10px;
-    }
-
-    textarea { min-height:70px; }
-
-    .btn {
-      width:100%;
-      padding:13px;
-      border:none;
-      border-radius:10px;
-      background:var(--accent);
-      font-weight:700;
-      cursor:pointer;
-      color:#050508;
-    }
-
-    .tx-item {
-      background:var(--bg);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:14px;
-      margin-bottom:10px;
-    }
-
-    .tx-top {
-      display:flex;
-      justify-content:space-between;
-      margin-bottom:8px;
-    }
-
-    .tx-badge {
-      font-size:10px;
-      padding:3px 9px;
-      border-radius:99px;
-      border:1px solid var(--border);
-      color:var(--accent);
-      text-transform:uppercase;
-    }
-
-    .tx-date {
-      font-size:11px;
-      color:var(--muted);
-    }
-  </style>
+.small {
+  color:var(--muted);
+  font-size:12px;
+}
+</style>
 </head>
 
 <body>
 
 <header>
-  <div class="eyebrow">League Activity</div>
-  <h1>RRL <span>Transactions</span></h1>
+  <h1>RRL TRANSACTIONS</h1>
 </header>
 
 <main>
 
-  <div class="tabs">
-    <div class="tab active" data-tab="log">Transactions</div>
-    <div class="tab" data-tab="commish">Commish</div>
+  <!-- COMMISH LOGIN -->
+  <div class="card">
+    <label>Password</label>
+    <input type="password" id="pw" placeholder="Enter password">
+    <button id="login">Login</button>
   </div>
 
-  <!-- LOG -->
-  <div id="tab-log" class="tab-content active">
-    <div id="tx-list"></div>
-  </div>
-
-  <!-- COMMISH -->
-  <div id="tab-commish" class="tab-content">
+  <!-- COMMISH PANEL -->
+  <div id="panel" style="display:none;">
 
     <div class="card">
-      <div class="card-title">Commissioner Login</div>
-      <input type="password" id="pw" placeholder="Password">
-      <button class="btn" id="login">Login</button>
-    </div>
+      <h3 style="margin-bottom:10px;">Log Trade</h3>
 
-    <div id="panel" style="display:none;">
-      <div class="card">
-        <div class="card-title">Log Transaction</div>
+      <label>Team A (Trading)</label>
+      <select id="teamA"></select>
 
-        <select id="type">
-          <option value="trade">Trade</option>
-          <option value="waiver">Waiver</option>
-          <option value="retire">Retirement</option>
-          <option value="other">Other</option>
-        </select>
+      <label>Team B (Trading)</label>
+      <select id="teamB"></select>
 
-        <textarea id="desc" placeholder="Description"></textarea>
-        <input id="notes" placeholder="Notes (optional)">
+      <label>Trade Description</label>
+      <textarea id="desc" placeholder="What happened in this trade?"></textarea>
 
-        <button class="btn" id="submit">Post</button>
-      </div>
+      <label>Notes</label>
+      <input id="notes" placeholder="Optional notes">
+
+      <button id="post">Post Transaction</button>
     </div>
 
   </div>
+
+  <!-- FEED -->
+  <div id="feed"></div>
 
 </main>
 
 <script>
+
 const sb = supabase.createClient(
-  'https://orreqxjbzqcjrzuazpco.supabase.co',
-  'YOUR_ANON_KEY'
+  "https://orreqxjbzqcjrzuazpco.supabase.co",
+  "YOUR_ANON_KEY"
 );
 
-const PASS = "comm101";
-let logged = false;
+const PASS = "RRL2026";
 
-document.querySelectorAll(".tab").forEach(t=>{
-  t.onclick=()=>{
-    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-    document.querySelectorAll(".tab-content").forEach(x=>x.classList.remove("active"));
-    t.classList.add("active");
-    document.getElementById("tab-"+t.dataset.tab).classList.add("active");
-  };
-});
+const TEAMS = [
+"Wolves","Stuntmen","Beasts","Falcons","Reapers","Patriots",
+"Triple T Elite","Fatties","Judy Hopps FC","Sour Patch Kids","La Familia","Predators"
+];
 
-document.getElementById("login").onclick=()=>{
-  if(document.getElementById("pw").value!==PASS) return alert("Wrong password");
-  logged=true;
-  document.getElementById("panel").style.display="block";
-};
-
-async function load(){
-  const {data}=await sb.from("transactions").select("*").order("created_at",{ascending:false});
-  const el=document.getElementById("tx-list");
-
-  if(!data?.length){
-    el.innerHTML = "<p style='color:#6b6b80;text-align:center;'>No transactions yet.</p>";
+// login
+document.getElementById("login").onclick = () => {
+  if(document.getElementById("pw").value !== PASS){
+    alert("Wrong password");
     return;
   }
 
-  el.innerHTML=data.map(t=>`
-    <div class="tx-item">
-      <div class="tx-top">
-        <span class="tx-badge">${t.type}</span>
-        <span class="tx-date">${new Date(t.created_at).toLocaleDateString()}</span>
-      </div>
-      <div>${t.description || ""}</div>
-      ${t.notes ? `<div style="color:#6b6b80;font-size:12px;margin-top:6px;">${t.notes}</div>` : ""}
-    </div>
-  `).join("");
-}
+  document.getElementById("panel").style.display = "block";
 
-load();
+  const options = TEAMS.map(t => `<option>${t}</option>`).join("");
+  document.getElementById("teamA").innerHTML = options;
+  document.getElementById("teamB").innerHTML = options;
+};
 
-document.getElementById("submit").onclick=async()=>{
-  if(!logged) return alert("Login first");
+// post transaction
+document.getElementById("post").onclick = async () => {
 
-  const payload = {
-    type: document.getElementById("type").value,
-    description: document.getElementById("desc").value,
-    notes: document.getElementById("notes").value,
-    created_at: new Date().toISOString()
-  };
+  const teamA = document.getElementById("teamA").value;
+  const teamB = document.getElementById("teamB").value;
+  const desc = document.getElementById("desc").value;
+  const notes = document.getElementById("notes").value;
 
-  await sb.from("transactions").insert(payload);
+  if(teamA === teamB){
+    alert("Teams must be different");
+    return;
+  }
+
+  await sb.from("transactions").insert({
+    type:"trade",
+    team_a:teamA,
+    team_b:teamB,
+    description:`${teamA} traded with ${teamB} — ${desc}`,
+    notes,
+    created_at:new Date().toISOString()
+  });
 
   document.getElementById("desc").value="";
   document.getElementById("notes").value="";
 
   load();
 };
+
+// load feed
+async function load(){
+  const {data} = await sb.from("transactions")
+    .select("*")
+    .order("created_at",{ascending:false});
+
+  document.getElementById("feed").innerHTML = data.map(t => `
+    <div class="tx">
+      <div class="badge">${t.type}</div>
+      <div><b>${t.team_a || ""}</b> ⇄ <b>${t.team_b || ""}</b></div>
+      <div class="small">${t.description || ""}</div>
+      ${t.notes ? `<div class="small">Note: ${t.notes}</div>` : ""}
+    </div>
+  `).join("");
+}
+
+load();
+
 </script>
 
 </body>
