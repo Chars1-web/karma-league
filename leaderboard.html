@@ -3,92 +3,240 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>RRL Leaderboard</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 
-:root{
-  --bg:#07080c;
-  --card:#11131b;
-  --border:#1d2230;
-  --accent:#e8ff3c;
-  --text:#f5f5f5;
-  --muted:#8a8fa3;
+:root {
+  --bg: #07080c;
+  --card: #11131b;
+  --border: #1d2230;
+  --accent: #e8ff3c;
+  --accent-dark: #c9dd1a;
+  --text: #f5f5f5;
+  --muted: #8a8fa3;
+  --hover: #141827;
+  --highlight: #1a1f2e;
 }
 
-body{
-  margin:0;
-  padding:30px 16px;
-  background:var(--bg);
-  color:var(--text);
-  font-family:'DM Sans',sans-serif;
+* {
+  box-sizing: border-box;
 }
 
-h1{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:52px;
-  text-align:center;
-  letter-spacing:2px;
-  margin-bottom:10px;
+body {
+  margin: 0;
+  padding: 40px 16px;
+  background: linear-gradient(135deg, var(--bg) 0%, #0a0d13 100%);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
 }
 
-.sub{
-  text-align:center;
-  color:var(--muted);
-  margin-bottom:25px;
-  font-size:13px;
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
-table{
-  width:100%;
-  max-width:900px;
-  margin:auto;
-  border-collapse:collapse;
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:12px;
-  overflow:hidden;
+h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 56px;
+  text-align: center;
+  letter-spacing: 3px;
+  margin: 0 0 8px 0;
+  color: var(--text);
+  text-shadow: 0 2px 20px rgba(232, 255, 60, 0.1);
 }
 
-th, td{
-  padding:12px;
-  border-bottom:1px solid #1d2230;
-  text-align:left;
-  font-size:13px;
+.sub {
+  text-align: center;
+  color: var(--muted);
+  margin-bottom: 40px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
 }
 
-th{
-  color:var(--accent);
-  font-size:12px;
-  text-transform:uppercase;
-  letter-spacing:1px;
+.table-wrapper {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-tr:hover{
-  background:#141827;
+table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.highlight{
-  background:#1a1f2e !important;
-  border-left:3px solid var(--accent);
+thead {
+  background: linear-gradient(90deg, rgba(29, 34, 48, 0.8), rgba(29, 34, 48, 0.4));
+  border-bottom: 2px solid var(--border);
 }
 
-.back{
-  text-align:center;
-  margin-top:20px;
+th {
+  padding: 16px 14px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  position: relative;
+  white-space: nowrap;
 }
 
-a{
-  color:var(--accent);
-  text-decoration:none;
+th:hover {
+  color: var(--accent);
+  background: rgba(232, 255, 60, 0.08);
 }
 
-.loading{
-  text-align:center;
-  color:var(--muted);
+th.sortable:hover {
+  padding-right: 28px;
+}
+
+.sort-icon {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 10px;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+
+th:hover .sort-icon {
+  opacity: 0.7;
+}
+
+th.active .sort-icon {
+  opacity: 1;
+  color: var(--accent);
+}
+
+tbody tr {
+  border-bottom: 1px solid rgba(29, 34, 48, 0.8);
+  transition: all 0.15s ease;
+}
+
+tbody tr:hover {
+  background: var(--hover);
+}
+
+tbody tr:last-child {
+  border-bottom: none;
+}
+
+td {
+  padding: 14px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.rank-col {
+  font-weight: 700;
+  color: var(--accent);
+  width: 50px;
+  text-align: center;
+}
+
+.player-col {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.player-col a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  border-bottom: 1px solid transparent;
+}
+
+.player-col a:hover {
+  color: var(--accent-dark);
+  border-bottom-color: var(--accent);
+}
+
+.team-col {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.stat-col {
+  text-align: right;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+
+.highlight {
+  background: var(--highlight) !important;
+  border-left: 4px solid var(--accent);
+}
+
+.highlight td:first-child {
+  padding-left: 10px;
+}
+
+.loading {
+  text-align: center;
+  color: var(--muted);
+  padding: 60px 20px;
+  font-size: 15px;
+}
+
+.back {
+  text-align: center;
+  margin-top: 32px;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--accent-dark);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+}
+
+.footer-text {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 24px;
+  opacity: 0.7;
+}
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 36px;
+    letter-spacing: 2px;
+  }
+
+  th, td {
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+
+  th {
+    font-size: 10px;
+  }
+
+  .rank-col {
+    width: 40px;
+  }
+
+  .table-wrapper {
+    border-radius: 12px;
+  }
 }
 
 </style>
@@ -96,91 +244,158 @@ a{
 
 <body>
 
-<h1>RRL Leaderboard</h1>
-<div class="sub">Ranked by Points Forced (Column F)</div>
+<div class="container">
+  <h1>RRL Leaderboard</h1>
+  <div class="sub">Click column headers to sort</div>
 
-<div id="wrap" class="loading">Loading leaderboard...</div>
+  <div id="wrap" class="loading">Loading leaderboard...</div>
 
-<div class="back">
-  <a href="index.html">← Back Home</a>
+  <div class="footer-text" id="footer"></div>
+
+  <div class="back">
+    <a href="index.html">← Back Home</a>
+  </div>
 </div>
 
 <script>
 
-const SHEET_URL =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vS7OR3Jlik3PnCF6unj_M78_LjWaEkd6gfO85-BPeEP3uW-9JO0oWfRVxeTloj-oU6Aq38YGlCEbiAD/pub?gid=1287343484&single=true&output=csv";
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS7OR3Jlik3PnCF6unj_M78_LjWaEkd6gfO85-BPeEP3uW-9JO0oWfRVxeTloj-oU6Aq38YGlCEbiAD/pub?gid=1287343484&single=true&output=csv";
 
 const params = new URLSearchParams(window.location.search);
 const selectedUser = (params.get("user") || "").trim();
 
-function parseCSV(text){
+let allPlayers = [];
+let currentSort = { column: "points", direction: "desc" };
+
+function parseCSV(text) {
   return text.trim().split("\n").map(r => r.split(","));
 }
 
-async function load(){
+function sortPlayers(column, direction) {
+  const sorted = [...allPlayers].sort((a, b) => {
+    let aVal = a[column];
+    let bVal = b[column];
 
-  const res = await fetch(SHEET_URL);
-  const text = await res.text();
+    if (typeof aVal === "number" && typeof bVal === "number") {
+      return direction === "asc" ? aVal - bVal : bVal - aVal;
+    }
 
-  const rows = parseCSV(text).slice(1);
+    aVal = String(aVal).toLowerCase();
+    bVal = String(bVal).toLowerCase();
+    return direction === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+  });
 
-  let players = [];
+  return sorted;
+}
 
-  for(const r of rows){
-
-    const name = (r[1] || "").trim(); // B
-    if(!name) continue;
-
-    players.push({
-      name,
-      team: r[2] || "—",      // C
-      games: Number(r[3])||0,  // D
-      rating: Number(r[4])||0, // E
-      points: Number(r[5])||0  // F
-    });
-
-  }
-
-  // SORT BY POINTS FORCED
-  players.sort((a,b)=>b.points-a.points);
-
+function renderTable(players) {
   let html = `
-  <table>
-    <tr>
-      <th>Rank</th>
-      <th>Player</th>
-      <th>Team</th>
-      <th>Games</th>
-      <th>Rating</th>
-      <th>Points Forced</th>
-    </tr>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th class="sortable" data-column="rank">
+            Rank
+            <span class="sort-icon ${currentSort.column === "rank" ? "active" : ""}">${currentSort.column === "rank" ? (currentSort.direction === "asc" ? "↑" : "↓") : "⇅"}</span>
+          </th>
+          <th class="sortable" data-column="name">
+            Player
+            <span class="sort-icon ${currentSort.column === "name" ? "active" : ""}">${currentSort.column === "name" ? (currentSort.direction === "asc" ? "↑" : "↓") : "⇅"}</span>
+          </th>
+          <th class="sortable" data-column="team">
+            Team
+            <span class="sort-icon ${currentSort.column === "team" ? "active" : ""}">${currentSort.column === "team" ? (currentSort.direction === "asc" ? "↑" : "↓") : "⇅"}</span>
+          </th>
+          <th class="sortable" data-column="games">
+            Games
+            <span class="sort-icon ${currentSort.column === "games" ? "active" : ""}">${currentSort.column === "games" ? (currentSort.direction === "asc" ? "↑" : "↓") : "⇅"}</span>
+          </th>
+          <th class="sortable" data-column="rating">
+            Rating
+            <span class="sort-icon ${currentSort.column === "rating" ? "active" : ""}">${currentSort.column === "rating" ? (currentSort.direction === "asc" ? "↑" : "↓") : "⇅"}</span>
+          </th>
+          <th class="sortable" data-column="points">
+            Points Forced
+            <span class="sort-icon ${currentSort.column === "points" ? "active" : ""}">${currentSort.column === "points" ? (currentSort.direction === "asc" ? "↑" : "↓") : "⇅"}</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
   `;
 
-  players.forEach((p,i)=>{
-
+  players.forEach((p, i) => {
     const isSelected = p.name === selectedUser;
-
     html += `
       <tr class="${isSelected ? "highlight" : ""}">
-        <td>${i+1}</td>
-        <td>
+        <td class="rank-col">${i + 1}</td>
+        <td class="player-col">
           <a href="profile.html?user=${encodeURIComponent(p.name)}">
             ${p.name}
           </a>
         </td>
-        <td>${p.team}</td>
-        <td>${p.games}</td>
-        <td>${p.rating}</td>
-        <td>${p.points}</td>
+        <td class="team-col">${p.team}</td>
+        <td class="stat-col">${p.games}</td>
+        <td class="stat-col">${p.rating}</td>
+        <td class="stat-col">${p.points}</td>
       </tr>
     `;
-
   });
 
-  html += `</table>`;
+  html += `
+      </tbody>
+    </table>
+  </div>
+  `;
 
   document.getElementById("wrap").innerHTML = html;
+  document.getElementById("footer").textContent = `Showing ${players.length} player${players.length !== 1 ? "s" : ""}`;
 
+  // Attach click handlers to headers
+  document.querySelectorAll("th.sortable").forEach(th => {
+    th.addEventListener("click", () => {
+      const column = th.dataset.column;
+      if (currentSort.column === column) {
+        currentSort.direction = currentSort.direction === "asc" ? "desc" : "asc";
+      } else {
+        currentSort.column = column;
+        currentSort.direction = column === "name" || column === "team" ? "asc" : "desc";
+      }
+      const sorted = sortPlayers(column, currentSort.direction);
+      renderTable(sorted);
+    });
+  });
+}
+
+async function load() {
+  try {
+    const res = await fetch(SHEET_URL);
+    const text = await res.text();
+    const rows = parseCSV(text).slice(1);
+
+    allPlayers = [];
+
+    for (const r of rows) {
+      const name = (r[1] || "").trim();
+      if (!name) continue;
+
+      allPlayers.push({
+        rank: allPlayers.length + 1,
+        name,
+        team: r[2] || "—",
+        games: Number(r[3]) || 0,
+        rating: Number(r[4]) || 0,
+        points: Number(r[5]) || 0
+      });
+    }
+
+    // Sort by points by default
+    const sorted = sortPlayers("points", "desc");
+    renderTable(sorted);
+
+  } catch (error) {
+    document.getElementById("wrap").innerHTML = `<div class="empty-state">Failed to load leaderboard. Please try again later.</div>`;
+    console.error(error);
+  }
 }
 
 load();
