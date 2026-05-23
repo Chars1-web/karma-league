@@ -30,9 +30,10 @@ body {
   font-family:'DM Sans',sans-serif;
 }
 
-/* 🔒 prevents layout shift when scrollbar appears */
-html {
-  overflow-y: scroll;
+/* 🔥 FIX #1 — stops scroll “re-center” behavior */
+html, body {
+  height: 100%;
+  overflow-anchor: none;
 }
 
 .container {
@@ -49,7 +50,7 @@ h1 {
 }
 
 /* =========================
-   FIXED TABLE SYSTEM
+   TABLE (UNCHANGED)
 ========================= */
 
 .table-wrapper {
@@ -59,21 +60,15 @@ h1 {
 
   overflow-x:auto;
   overflow-y:hidden;
-
-  /* prevents weird vertical jumps */
-  position:relative;
 }
 
-/* 🔥 KEY FIX: forces perfect column alignment */
 table {
   width:100%;
   min-width:850px;
   border-collapse:collapse;
-
-  table-layout:fixed; /* 🔥 FIXES HEADER ALIGNMENT */
+  table-layout:fixed;
 }
 
-/* header */
 thead {
   background:rgba(29,34,48,0.7);
 }
@@ -89,7 +84,6 @@ th {
   cursor:pointer;
 }
 
-/* body */
 td {
   padding:14px 12px;
   font-size:14px;
@@ -100,7 +94,6 @@ tbody tr:hover {
   background:var(--hover);
 }
 
-/* columns */
 .rank-col {
   width:60px;
   color:var(--accent);
@@ -125,13 +118,11 @@ tbody tr:hover {
   text-align:right;
 }
 
-/* highlight selected player */
 .highlight {
   background:var(--highlight);
   border-left:4px solid var(--accent);
 }
 
-/* footer */
 .back {
   text-align:center;
   margin-top:25px;
@@ -173,8 +164,12 @@ function parseCSV(text){
   return text.trim().split("\n").map(r => r.split(","));
 }
 
-/* 🔥 stable sorting */
+/* =========================
+   SORT (FIXED ONLY)
+========================= */
 function sortData(col){
+
+  const scrollY = window.scrollY; // 🔥 FIX: prevents jump
 
   if(sortColumn === col){
     sortDir = sortDir === "asc" ? "desc" : "asc";
@@ -196,9 +191,13 @@ function sortData(col){
   });
 
   render();
+
+  window.scrollTo(0, scrollY); // 🔥 FIX: locks position
 }
 
-/* 🔥 RENDER */
+/* =========================
+   RENDER (UNCHANGED)
+========================= */
 function render(){
 
   let html = `
@@ -238,7 +237,9 @@ function render(){
   document.getElementById("wrap").innerHTML = html;
 }
 
-/* 🔥 LOAD */
+/* =========================
+   LOAD (UNCHANGED)
+========================= */
 async function load(){
 
   const res = await fetch(SHEET_URL);
