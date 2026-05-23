@@ -18,11 +18,7 @@
   --muted:#8a8fa3;
 }
 
-*{
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
-}
+*{box-sizing:border-box;margin:0;padding:0;}
 
 body{
   background:var(--bg);
@@ -33,12 +29,12 @@ body{
 
 header{
   text-align:center;
-  margin-bottom:24px;
+  margin-bottom:30px;
 }
 
 h1{
   font-family:'Bebas Neue',sans-serif;
-  font-size:58px;
+  font-size:54px;
   letter-spacing:2px;
 }
 
@@ -50,24 +46,7 @@ h1 span{color:var(--accent);}
   margin-top:6px;
 }
 
-.top-buttons{
-  text-align:center;
-  margin-bottom:26px;
-}
-
-button{
-  background:var(--accent);
-  color:black;
-  border:none;
-  padding:10px 16px;
-  border-radius:10px;
-  font-weight:700;
-  cursor:pointer;
-  font-size:13px;
-}
-
-button:hover{opacity:.9;}
-
+/* GRID */
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
@@ -76,6 +55,7 @@ button:hover{opacity:.9;}
   margin:auto;
 }
 
+/* TEAM CARD */
 .team{
   background:var(--card);
   border:1px solid var(--border);
@@ -90,13 +70,11 @@ button:hover{opacity:.9;}
   margin-bottom:10px;
   border-bottom:1px solid var(--border);
   padding-bottom:8px;
-  gap:10px;
 }
 
 .team-name{
   font-family:'Bebas Neue',sans-serif;
   font-size:24px;
-  letter-spacing:1px;
 }
 
 .gm{
@@ -105,49 +83,40 @@ button:hover{opacity:.9;}
   font-weight:700;
 }
 
+/* PLAYERS */
 .player{
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  padding:7px 0;
+  padding:6px 0;
   border-bottom:1px solid rgba(255,255,255,0.04);
   font-size:13px;
 }
 
 .player:last-child{border-bottom:none;}
 
-.username{font-weight:600;}
-
-.badge{font-size:11px;color:var(--muted);}
-
-input{
-  background:#0d1017;
-  border:1px solid var(--border);
-  color:white;
-  padding:7px;
-  border-radius:8px;
-  width:100%;
+.username{
+  font-weight:600;
 }
 
-.team-edit{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:20px;
+.badge{
+  font-size:11px;
+  color:var(--muted);
 }
 
-footer{
-  text-align:center;
-  margin-top:40px;
-}
-
+/* LINKS */
 a{
-  color:var(--text);
+  color:inherit;
   text-decoration:none;
-  border:1px solid var(--border);
-  padding:10px 16px;
-  border-radius:10px;
 }
 
-a:hover{border-color:var(--accent);color:var(--accent);}
+a:hover{
+  color:var(--accent);
+}
+
+.loading{
+  text-align:center;
+  color:var(--muted);
+}
 </style>
 </head>
 
@@ -155,159 +124,155 @@ a:hover{border-color:var(--accent);color:var(--accent);}
 
 <header>
   <h1>RRL <span>Rosters</span></h1>
-  <div class="sub">Official roster database</div>
+  <div class="sub">Click players or GMs to view profiles</div>
 </header>
 
-<div class="top-buttons">
-  <button onclick="loginCommish()">Commish Login</button>
+<div id="roster" class="grid">
+  <div class="loading">Loading rosters...</div>
 </div>
-
-<div id="roster" class="grid"></div>
-
-<footer>
-  <a href="index.html">← Home</a>
-</footer>
 
 <script>
 
-const COMMISH_PASSWORD = "RRL2026";
+/* =========================
+   YOUR FULL RRL ROSTERS
+========================= */
 
-const defaultTeams = {
+const teams = {
 
-  "Rangers 🤺": { gm:"pgh", players:["izzo","kronic1x","four","josh.dobbs","jamie1dk_","meles","puntspuntspunts","trylq","vazyok"] },
+  "Rangers 🤺": {
+    gm:"pgh",
+    players:["izzo","kronic1x","four","josh.dobbs","jamie1dk_","meles","puntspuntspunts","trylq","vazyok"]
+  },
 
-  "Villains 🦹": { gm:"croze", players:["jordan","jabahhh","horchata_","winn","cukamunger","upvotefarmer","willvr"] },
+  "Villains 🦹": {
+    gm:"croze",
+    players:["jordan","jabahhh","horchata_","winn","cukamunger","upvotefarmer","willvr"]
+  },
 
-  "Polarbears 🐻‍❄️": { gm:"mmf", players:["nick72","bigsnook","jackbl8","ok124","outbacksteakhouse","maye","stkviking","corbin","kninja"] },
+  "Polarbears 🐻‍❄️": {
+    gm:"mmf",
+    players:["nick72","bigsnook","jackbl8","ok124","outbacksteakhouse","maye","stkviking","corbin","kninja"]
+  },
 
-  "Titans ⚔️": { gm:"tn", players:["bigk","bojan.the.torta.pounder","ducked","jowy","justinjefferson","payt0n","rei","sox","tito"] },
+  "Titans ⚔️": {
+    gm:"tn",
+    players:["bigk","bojan.the.torta.pounder","ducked","jowy","justinjefferson","payt0n","rei","sox","tito"]
+  },
 
-  "Lions 🦁": { gm:"tacko", players:["gschmoney","iceman","nyc","suryc","yunior","goodbyesosoon","mykosiv_","dev","jakefromstatenothing"] },
+  "Lions 🦁": {
+    gm:"tacko",
+    players:["gschmoney","iceman","nyc","suryc","yunior","goodbyesosoon","mykosiv_","dev","jakefromstatenothing"]
+  },
 
-  "Goats 🐐": { gm:"diehard", players:["noahrawji","e3thqn","hairston","pctu","dr.bam","_vinnie","sid","ak"] },
+  "Goats 🐐": {
+    gm:"diehard",
+    players:["noahrawji","e3thqn","hairston","pctu","dr.bam","_vinnie","sid","ak"]
+  },
 
-  "Dinos 🦖": { gm:"ukator", players:["derrickrichardwhite","honey_nut_chourios","quad","revag","snowy","vincent_","trixsta"] },
+  "Dinos 🦖": {
+    gm:"ukator",
+    players:["derrickrichardwhite","honey_nut_chourios","quad","revag","snowy","vincent_","trixsta"]
+  },
 
-  "Sharks 🦈": { gm:"florida_sportsfan", players:["bucksmuse","carr_","seahawksdevon","hoodispida","lyfeonbalenciii","maridagoat","maye","washington","jd5"] },
+  "Sharks 🦈": {
+    gm:"florida_sportsfan",
+    players:["bucksmuse","carr_","seahawksdevon","hoodispida","lyfeonbalenciii","maridagoat","maye","washington","jd5"]
+  },
 
-  "Gators 🐊": { gm:"gmoneytb", players:["burres","chosen","duolingo","f1","karty","kiddo","koolesa","volp3","sinatra"] },
+  "Gators 🐊": {
+    gm:"gmoneytb",
+    players:["burres","chosen","duolingo","f1","karty","kiddo","koolesa","volp3","sinatra"]
+  },
 
-  "Bay Stars ✨": { gm:"ozone", players:["trixsta","izzo","joshgaffen","lamarjacksonbih","maye_10","mke","mintzyman","shota_imanaga","tyson0"] },
+  "Bay Stars ✨": {
+    gm:"ozone",
+    players:["trixsta","izzo","joshgaffen","lamarjacksonbih","maye_10","mke","mintzyman","shota_imanaga","tyson0"]
+  },
 
-  "Commies ⚒️": { gm:"victorosimhen", players:["chrono","cmg","derrickrichardwhite","lightning755","nbaburner","thunder","turtleneck"] },
+  "Commies ⚒️": {
+    gm:"victorosimhen",
+    players:["chrono","cmg","derrickrichardwhite","lightning755","nbaburner","thunder","turtleneck"]
+  },
 
-  "Snakes 🐍": { gm:"r0dmanx", players:["brock.purdy","grinchgetsbuckets","jscuvy","michael.busch","michst37","washington","xero"] },
+  "Snakes 🐍": {
+    gm:"r0dmanx",
+    players:["brock.purdy","grinchgetsbuckets","jscuvy","michael.busch","michst37","washington","xero"]
+  },
 
-  "Kraken 🐙": { gm:"concretejungle", players:["sportsnerd18","bluejays","gio","mykosiv_","erotic","eli_n7","orme","chars1"] },
+  "Kraken 🐙": {
+    gm:"concretejungle",
+    players:["sportsnerd18","bluejays","gio","mykosiv_","erotic","eli_n7","orme","chars1"]
+  },
 
-  "Knights 🛡️": { gm:"cbo", players:["baudin","bobsburgers","castle","dc","dw","orme","squeakyblinders","sushi"] },
+  "Knights 🛡️": {
+    gm:"cbo",
+    players:["baudin","bobsburgers","castle","dc","dw","orme","squeakyblinders","sushi"]
+  },
 
-  "Penguins 🐧": { gm:"nasa", players:["chicolin","he1sman_","jowy","reeseolson","jj","stovetop1","maridagoat","jack","willi3"] },
+  "Penguins 🐧": {
+    gm:"nasa",
+    players:["chicolin","he1sman_","jowy","reeseolson","jj","stovetop1","maridagoat","jack","willi3"]
+  },
 
-  "Reapers 💀": { gm:"risen", players:["coppr","mythic","seansty","fowler","aayan.t","eclipse","nykyri","passionfruit"] }
+  "Reapers 💀": {
+    gm:"risen",
+    players:["coppr","mythic","seansty","fowler","aayan.t","eclipse","nykyri","passionfruit"]
+  }
 
 };
 
-let teams = JSON.parse(localStorage.getItem("rrl_rosters")) || defaultTeams;
-
-let commish = false;
-
-function loginCommish(){
-  const pass = prompt("Enter Commish Password");
-  if(pass === COMMISH_PASSWORD){
-    commish = true;
-    render();
-    alert("Commish Mode Enabled");
-  } else {
-    alert("Wrong Password");
-  }
-}
-
-function editPlayer(team,i,val){
-  teams[team].players[i] = val;
-}
-
-function editGM(team,val){
-  teams[team].gm = val;
-}
-
-function renameTeam(oldName,newName){
-  if(oldName === newName) return;
-  teams[newName] = teams[oldName];
-  delete teams[oldName];
-  render();
-}
-
-function addPlayer(team){
-  teams[team].players.push("newplayer");
-  render();
-}
-
-function save(){
-  localStorage.setItem("rrl_rosters", JSON.stringify(teams));
-  alert("Saved!");
-}
+/* =========================
+   RENDER FUNCTION
+========================= */
 
 function render(){
-  const box = document.getElementById("roster");
-  box.innerHTML = "";
 
-  Object.keys(teams).forEach(team=>{
+  const container = document.getElementById("roster");
+  container.innerHTML = "";
 
-    const t = teams[team];
+  Object.keys(teams).forEach(teamName => {
 
-    const players = t.players.map((p,i)=>`
-      <div class="player">
-        ${
-          commish
-          ? `<input value="${p}" onchange="editPlayer('${team}',${i},this.value)">`
-          : ` <div class="username">
-  <a href="profile.html?user=${encodeURIComponent(p)}">${p}</a>`
-</div>
-        }
-        <div class="badge">Player</div>
-      </div>
-    `).join("");
+    const team = teams[teamName];
 
-    box.innerHTML += `
+    const gmLink = encodeURIComponent(team.gm);
+
+    const playersHTML = team.players.map(p => {
+
+      const safe = encodeURIComponent(p);
+
+      return `
+        <div class="player">
+          <div class="username">
+            <a href="profile.html?user=${safe}">${p}</a>
+          </div>
+          <div class="badge">Player</div>
+        </div>
+      `;
+
+    }).join("");
+
+    container.innerHTML += `
       <div class="team">
+
         <div class="team-header">
 
-          ${
-            commish
-            ? `<input class="team-edit" value="${team}" onchange="renameTeam('${team}',this.value)">`
-            : `<div class="team-name">${team}</div>`
-          }
+          <div class="team-name">${teamName}</div>
 
-          ${
-            commish
-            ? `<input value="${t.gm}" onchange="editGM('${team}',this.value)">`
-            :  ` <div class="gm">
-  <a href="profile.html?user=${encodeURIComponent(t.gm)}">GM @${t.gm}</a> `
-</div>
-          }
+          <div class="gm">
+            <a href="profile.html?user=${gmLink}">
+              GM @${team.gm}
+            </a>
+          </div>
 
         </div>
 
-        ${players}
-
-        ${
-          commish
-          ? `<button onclick="addPlayer('${team}')">+ Add Player</button>`
-          : ""
-        }
+        ${playersHTML}
 
       </div>
     `;
+
   });
 
-  if(commish){
-    box.innerHTML += `
-      <div style="grid-column:1/-1;text-align:center;margin-top:20px;">
-        <button onclick="save()">Save Rosters</button>
-      </div>
-    `;
-  }
 }
 
 render();
