@@ -261,7 +261,9 @@ function render(){
         ${
           commish
           ? `<input value="${p}" onchange="editPlayer('${team}',${i},this.value)">`
-          : `<div class="username">${p}</div>`
+          : <div class="username">
+  <a href="profile.html?user=${encodeURIComponent(p)}">${p}</a>
+</div>
         }
         <div class="badge">Player</div>
       </div>
