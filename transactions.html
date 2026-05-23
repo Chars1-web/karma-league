@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RRL – Transactions</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-:root{
+:root {
   --bg:#050508;
   --card:#13131c;
   --border:#1e1e2e;
@@ -17,16 +17,17 @@
   --muted:#6b6b80;
 }
 
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
 body{
-  margin:0;
-  font-family:'DM Sans',sans-serif;
   background:var(--bg);
   color:white;
+  font-family:'DM Sans',sans-serif;
 }
 
 header{
   text-align:center;
-  padding:40px 20px 20px;
+  padding:40px 24px 20px;
   border-bottom:1px solid var(--border);
 }
 
@@ -37,10 +38,35 @@ h1{
 }
 
 main{
-  max-width:700px;
+  max-width:640px;
   margin:0 auto;
-  padding:30px 16px;
+  padding:32px 16px 80px;
 }
+
+.tabs{display:flex;gap:8px;margin-bottom:28px;}
+
+.tab{
+  flex:1;
+  padding:11px;
+  text-align:center;
+  font-size:12px;
+  font-weight:700;
+  text-transform:uppercase;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--card);
+  color:var(--muted);
+  cursor:pointer;
+}
+
+.tab.active{
+  background:var(--accent);
+  color:#000;
+  border-color:var(--accent);
+}
+
+.tab-content{display:none;}
+.tab-content.active{display:block;}
 
 .card{
   background:var(--card);
@@ -84,20 +110,11 @@ button{
   font-size:10px;
   text-transform:uppercase;
   color:var(--accent);
-  margin-bottom:6px;
 }
 
 .small{
   color:var(--muted);
   font-size:12px;
-}
-
-.section-title{
-  font-size:14px;
-  color:var(--muted);
-  margin:20px 0 10px;
-  letter-spacing:0.1em;
-  text-transform:uppercase;
 }
 </style>
 </head>
@@ -110,37 +127,39 @@ button{
 
 <main>
 
-<!-- 🔥 PUBLIC FEED -->
-<div class="section-title">Public Feed</div>
-<div id="feed"></div>
-
-<!-- 🔒 COMMISH LOGIN -->
-<div class="section-title">Commissioner Panel</div>
-
-<div class="card">
-  <input type="password" id="pw" placeholder="Enter password">
-  <button id="login">Login</button>
+<!-- PUBLIC FEED -->
+<div class="tab-content active" id="tab-log">
+  <div id="tx-list"></div>
 </div>
 
-<!-- COMMISH PANEL -->
-<div id="panel" style="display:none;">
+<!-- COMMISH -->
+<div class="tab-content" id="tab-commish">
 
   <div class="card">
-    <h3 style="margin-bottom:10px;">Post Trade</h3>
+    <input type="password" id="pw" placeholder="Enter password">
+    <button id="login">Login</button>
+  </div>
 
-    <label>Team A</label>
-    <select id="teamA"></select>
+  <div id="panel" style="display:none;">
 
-    <label>Team B</label>
-    <select id="teamB"></select>
+    <div class="card">
+      <h3>Log Trade</h3>
 
-    <label>Description</label>
-    <textarea id="desc" placeholder="What happened in this trade?"></textarea>
+      <label>Team A</label>
+      <select id="teamA"></select>
 
-    <label>Notes</label>
-    <input id="notes" placeholder="Optional notes">
+      <label>Team B</label>
+      <select id="teamB"></select>
 
-    <button id="post">Post Transaction</button>
+      <label>Description</label>
+      <textarea id="desc" placeholder="Trade details..."></textarea>
+
+      <label>Notes</label>
+      <input id="notes" placeholder="Optional notes">
+
+      <button id="post">Post Transaction</button>
+    </div>
+
   </div>
 
 </div>
@@ -150,17 +169,29 @@ button{
 <script>
 
 const sb = supabase.createClient(
-  "https://orreqxjbzqcjrzuazpco.supabase.co",
-  "YOUR_ANON_KEY"
+  'https://orreqxjbzqcjrzuazpco.supabase.co',
+  'YOUR_ANON_KEY'
 );
 
-// 🔥 NEW RRL TEAMS
+// 🔥 RRL TEAMS (UPDATED SET)
 const TEAMS = [
-  "Wolves","Stuntmen","Beasts","Falcons","Reapers","Patriots",
-  "Triple T Elite","Fatties","Judy Hopps FC","Sour Patch Kids","La Familia","Predators"
+  "Wolves",
+  "Stuntmen",
+  "Beasts",
+  "Falcons",
+  "Reapers",
+  "Patriots",
+  "Outlaws",
+  "Titans",
+  "Vipers",
+  "Kings",
+  "Shadows",
+  "Renegades"
 ];
 
+// 🔐 UPDATED PASSWORD
 const PASS = "RRL2026";
+
 let logged = false;
 
 // LOGIN
@@ -178,7 +209,7 @@ document.getElementById("login").onclick = () => {
   document.getElementById("teamB").innerHTML = opts;
 };
 
-// POST TRADE
+// POST
 document.getElementById("post").onclick = async () => {
 
   const teamA = document.getElementById("teamA").value;
@@ -206,18 +237,18 @@ document.getElementById("post").onclick = async () => {
   load();
 };
 
-// LOAD PUBLIC FEED
+// LOAD FEED
 async function load(){
-  const {data} = await sb.from("transactions")
+  const {data}=await sb.from("transactions")
     .select("*")
     .order("created_at",{ascending:false});
 
-  document.getElementById("feed").innerHTML = data.map(t => `
+  document.getElementById("tx-list").innerHTML =
+  data.map(t=>`
     <div class="tx">
       <div class="badge">${t.type}</div>
-      <div><b>${t.team_a || ""}</b> ⇄ <b>${t.team_b || ""}</b></div>
-      <div class="small">${t.description || ""}</div>
-      ${t.notes ? `<div class="small">Note: ${t.notes}</div>` : ""}
+      <div><b>${t.team_a||""}</b> ⇄ <b>${t.team_b||""}</b></div>
+      <div class="small">${t.description||""}</div>
     </div>
   `).join("");
 }
