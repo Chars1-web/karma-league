@@ -10,95 +10,137 @@
 <style>
 
 :root {
-  --bg: #07080c;
-  --card: #11131b;
-  --border: #1d2230;
-  --accent: #e8ff3c;
-  --accent-dark: #c9dd1a;
-  --text: #f5f5f5;
-  --muted: #8a8fa3;
-  --hover: #141827;
-  --highlight: #1a1f2e;
+  --bg:#07080c;
+  --card:#11131b;
+  --border:#1d2230;
+  --accent:#e8ff3c;
+  --text:#f5f5f5;
+  --muted:#8a8fa3;
+  --hover:#141827;
+  --highlight:#1a1f2e;
 }
 
-* { box-sizing: border-box; }
+* { box-sizing:border-box; }
 
 body {
-  margin: 0;
-  padding: 40px 16px;
-  background: linear-gradient(135deg, var(--bg) 0%, #0a0d13 100%);
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
+  margin:0;
+  padding:40px 16px;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+}
+
+/* 🔒 prevents layout shift when scrollbar appears */
+html {
+  overflow-y: scroll;
 }
 
 .container {
-  max-width: 1000px;
-  margin: 0 auto;
+  max-width:1000px;
+  margin:0 auto;
 }
 
 h1 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 56px;
-  text-align: center;
-  letter-spacing: 3px;
-  margin-bottom: 8px;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:54px;
+  text-align:center;
+  letter-spacing:3px;
+  margin-bottom:10px;
 }
 
-/* ✅ ONLY FIX: SCROLL */
+/* =========================
+   FIXED TABLE SYSTEM
+========================= */
+
 .table-wrapper {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  overflow-x: auto;
-  overflow-y: hidden;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+
+  overflow-x:auto;
+  overflow-y:hidden;
+
+  /* prevents weird vertical jumps */
+  position:relative;
 }
 
+/* 🔥 KEY FIX: forces perfect column alignment */
 table {
-  width: 100%;
-  min-width: 850px;
-  border-collapse: collapse;
+  width:100%;
+  min-width:850px;
+  border-collapse:collapse;
+
+  table-layout:fixed; /* 🔥 FIXES HEADER ALIGNMENT */
+}
+
+/* header */
+thead {
+  background:rgba(29,34,48,0.7);
 }
 
 th {
-  padding: 16px 14px;
-  color: var(--accent);
-  font-size: 11px;
-  text-transform: uppercase;
-  cursor: pointer;
-  white-space: nowrap;
+  padding:14px 12px;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color:var(--accent);
+  text-align:left;
+  white-space:nowrap;
+  cursor:pointer;
 }
 
-tbody tr:hover { background: var(--hover); }
-
+/* body */
 td {
-  padding: 14px;
-  font-size: 14px;
+  padding:14px 12px;
+  font-size:14px;
+  border-bottom:1px solid rgba(29,34,48,0.6);
 }
 
-.rank-col { color: var(--accent); font-weight: 700; }
+tbody tr:hover {
+  background:var(--hover);
+}
+
+/* columns */
+.rank-col {
+  width:60px;
+  color:var(--accent);
+  font-weight:700;
+  text-align:center;
+}
 
 .player-col a {
-  color: var(--accent);
-  text-decoration: none;
+  color:var(--accent);
+  text-decoration:none;
 }
 
-.player-col a:hover { color: var(--accent-dark); }
+.player-col a:hover {
+  color:#c9dd1a;
+}
 
-.team-col { color: var(--muted); }
+.team-col {
+  color:var(--muted);
+}
 
-.stat-col { text-align: right; }
+.stat-col {
+  text-align:right;
+}
 
+/* highlight selected player */
 .highlight {
-  background: var(--highlight);
-  border-left: 4px solid var(--accent);
+  background:var(--highlight);
+  border-left:4px solid var(--accent);
 }
 
+/* footer */
 .back {
-  text-align: center;
-  margin-top: 20px;
+  text-align:center;
+  margin-top:25px;
 }
 
-a { color: var(--accent); text-decoration: none; }
+a {
+  color:var(--accent);
+  text-decoration:none;
+}
 
 </style>
 </head>
@@ -117,7 +159,8 @@ a { color: var(--accent); text-decoration: none; }
 
 <script>
 
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS7OR3Jlik3PnCF6unj_M78_LjWaEkd6gfO85-BPeEP3uW-9JO0oWfRVxeTloj-oU6Aq38YGlCEbiAD/pub?gid=1287343484&single=true&output=csv";
+const SHEET_URL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vS7OR3Jlik3PnCF6unj_M78_LjWaEkd6gfO85-BPeEP3uW-9JO0oWfRVxeTloj-oU6Aq38YGlCEbiAD/pub?gid=1287343484&single=true&output=csv";
 
 const params = new URLSearchParams(window.location.search);
 const selectedUser = (params.get("user") || "").trim();
@@ -130,7 +173,9 @@ function parseCSV(text){
   return text.trim().split("\n").map(r => r.split(","));
 }
 
+/* 🔥 stable sorting */
 function sortData(col){
+
   if(sortColumn === col){
     sortDir = sortDir === "asc" ? "desc" : "asc";
   } else {
@@ -139,6 +184,7 @@ function sortData(col){
   }
 
   players.sort((a,b)=>{
+
     let x = a[col];
     let y = b[col];
 
@@ -152,6 +198,7 @@ function sortData(col){
   render();
 }
 
+/* 🔥 RENDER */
 function render(){
 
   let html = `
@@ -171,6 +218,7 @@ function render(){
   `;
 
   players.forEach((p,i)=>{
+
     html += `
       <tr class="${p.name===selectedUser?'highlight':''}">
         <td class="rank-col">${i+1}</td>
@@ -190,6 +238,7 @@ function render(){
   document.getElementById("wrap").innerHTML = html;
 }
 
+/* 🔥 LOAD */
 async function load(){
 
   const res = await fetch(SHEET_URL);
@@ -197,13 +246,13 @@ async function load(){
 
   const rows = parseCSV(text).slice(1);
 
-  players = rows.map(r => ({
-    rank: 0,
-    name: (r[1]||"").trim(),
-    team: r[2]||"—",
-    games: Number(r[3])||0,
-    rating: Number(r[4])||0,
-    points: Number(r[5])||0
+  players = rows.map(r=>({
+    rank:0,
+    name:(r[1]||"").trim(),
+    team:r[2]||"—",
+    games:Number(r[3])||0,
+    rating:Number(r[4])||0,
+    points:Number(r[5])||0
   })).filter(p=>p.name);
 
   sortData("points");
