@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-:root {
+:root{
   --bg:#050508;
   --card:#13131c;
   --border:#1e1e2e;
@@ -17,47 +17,40 @@
   --muted:#6b6b80;
 }
 
-body {
+body{
   margin:0;
   font-family:'DM Sans',sans-serif;
   background:var(--bg);
   color:white;
 }
 
-header {
+header{
   text-align:center;
   padding:40px 20px 20px;
   border-bottom:1px solid var(--border);
 }
 
-h1 {
+h1{
   font-family:'Bebas Neue';
   font-size:60px;
   color:var(--accent);
 }
 
-main {
-  max-width:650px;
+main{
+  max-width:700px;
   margin:0 auto;
   padding:30px 16px;
 }
 
-.card {
+.card{
   background:var(--card);
   border:1px solid var(--border);
   border-radius:14px;
-  padding:20px;
-  margin-bottom:16px;
+  padding:18px;
+  margin-bottom:14px;
 }
 
-label {
-  font-size:11px;
-  letter-spacing:0.15em;
-  text-transform:uppercase;
-  color:var(--muted);
-}
-
-input,select,textarea {
+input,select,textarea{
   width:100%;
   margin-top:6px;
   margin-bottom:12px;
@@ -68,7 +61,7 @@ input,select,textarea {
   color:white;
 }
 
-button {
+button{
   width:100%;
   padding:12px;
   background:var(--accent);
@@ -79,7 +72,7 @@ button {
   color:#000;
 }
 
-.tx {
+.tx{
   background:#0a0a0f;
   border:1px solid var(--border);
   padding:14px;
@@ -87,15 +80,24 @@ button {
   margin-bottom:10px;
 }
 
-.badge {
+.badge{
   font-size:10px;
   text-transform:uppercase;
   color:var(--accent);
+  margin-bottom:6px;
 }
 
-.small {
+.small{
   color:var(--muted);
   font-size:12px;
+}
+
+.section-title{
+  font-size:14px;
+  color:var(--muted);
+  margin:20px 0 10px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
 }
 </style>
 </head>
@@ -108,38 +110,40 @@ button {
 
 <main>
 
-  <!-- COMMISH LOGIN -->
+<!-- 🔥 PUBLIC FEED -->
+<div class="section-title">Public Feed</div>
+<div id="feed"></div>
+
+<!-- 🔒 COMMISH LOGIN -->
+<div class="section-title">Commissioner Panel</div>
+
+<div class="card">
+  <input type="password" id="pw" placeholder="Enter password">
+  <button id="login">Login</button>
+</div>
+
+<!-- COMMISH PANEL -->
+<div id="panel" style="display:none;">
+
   <div class="card">
-    <label>Password</label>
-    <input type="password" id="pw" placeholder="Enter password">
-    <button id="login">Login</button>
+    <h3 style="margin-bottom:10px;">Post Trade</h3>
+
+    <label>Team A</label>
+    <select id="teamA"></select>
+
+    <label>Team B</label>
+    <select id="teamB"></select>
+
+    <label>Description</label>
+    <textarea id="desc" placeholder="What happened in this trade?"></textarea>
+
+    <label>Notes</label>
+    <input id="notes" placeholder="Optional notes">
+
+    <button id="post">Post Transaction</button>
   </div>
 
-  <!-- COMMISH PANEL -->
-  <div id="panel" style="display:none;">
-
-    <div class="card">
-      <h3 style="margin-bottom:10px;">Log Trade</h3>
-
-      <label>Team A (Trading)</label>
-      <select id="teamA"></select>
-
-      <label>Team B (Trading)</label>
-      <select id="teamB"></select>
-
-      <label>Trade Description</label>
-      <textarea id="desc" placeholder="What happened in this trade?"></textarea>
-
-      <label>Notes</label>
-      <input id="notes" placeholder="Optional notes">
-
-      <button id="post">Post Transaction</button>
-    </div>
-
-  </div>
-
-  <!-- FEED -->
-  <div id="feed"></div>
+</div>
 
 </main>
 
@@ -150,28 +154,31 @@ const sb = supabase.createClient(
   "YOUR_ANON_KEY"
 );
 
-const PASS = "RRL2026";
-
+// 🔥 NEW RRL TEAMS
 const TEAMS = [
-"Wolves","Stuntmen","Beasts","Falcons","Reapers","Patriots",
-"Triple T Elite","Fatties","Judy Hopps FC","Sour Patch Kids","La Familia","Predators"
+  "Wolves","Stuntmen","Beasts","Falcons","Reapers","Patriots",
+  "Triple T Elite","Fatties","Judy Hopps FC","Sour Patch Kids","La Familia","Predators"
 ];
 
-// login
+const PASS = "RRL2026";
+let logged = false;
+
+// LOGIN
 document.getElementById("login").onclick = () => {
   if(document.getElementById("pw").value !== PASS){
     alert("Wrong password");
     return;
   }
 
+  logged = true;
   document.getElementById("panel").style.display = "block";
 
-  const options = TEAMS.map(t => `<option>${t}</option>`).join("");
-  document.getElementById("teamA").innerHTML = options;
-  document.getElementById("teamB").innerHTML = options;
+  const opts = TEAMS.map(t => `<option>${t}</option>`).join("");
+  document.getElementById("teamA").innerHTML = opts;
+  document.getElementById("teamB").innerHTML = opts;
 };
 
-// post transaction
+// POST TRADE
 document.getElementById("post").onclick = async () => {
 
   const teamA = document.getElementById("teamA").value;
@@ -188,7 +195,7 @@ document.getElementById("post").onclick = async () => {
     type:"trade",
     team_a:teamA,
     team_b:teamB,
-    description:`${teamA} traded with ${teamB} — ${desc}`,
+    description:`${teamA} ⇄ ${teamB} — ${desc}`,
     notes,
     created_at:new Date().toISOString()
   });
@@ -199,7 +206,7 @@ document.getElementById("post").onclick = async () => {
   load();
 };
 
-// load feed
+// LOAD PUBLIC FEED
 async function load(){
   const {data} = await sb.from("transactions")
     .select("*")
