@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RRL – Commish Game Submit</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  body {
+    margin:0;
+    font-family:DM Sans;
+    background:#050508;
+    color:#fff;
+  }
+
+  header {
+    text-align:center;
+    padding:30px;
+    border-bottom:1px solid #1e1e2e;
+  }
+
+  h1 {
+    font-family:Bebas Neue;
+    font-size:48px;
+  }
+
+  main {
+    max-width:700px;
+    margin:auto;
+    padding:20px;
+  }
+
+  .card {
+    background:#13131c;
+    border:1px solid #1e1e2e;
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:14px;
+  }
+
+  select, input, textarea {
+    width:100%;
+    margin:6px 0;
+    padding:10px;
+    border-radius:10px;
+    border:1px solid #1e1e2e;
+    background:#050508;
+    color:#fff;
+  }
+
+  button {
+    width:100%;
+    padding:12px;
+    background:#00e5ff;
+    border:none;
+    border-radius:10px;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:10px;
+  }
+
+  .row {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>RRL <span style="color:#00e5ff;">COMMISH</span></h1>
+</header>
+
+<main>
+
+  <div class="card">
+    <label>Matchday</label>
+    <input id="matchday" type="number" placeholder="e.g. 5">
+
+    <label>Team A</label>
+    <select id="teamA"></select>
+
+    <label>Team A Score</label>
+    <input id="scoreA" type="number">
+
+    <label>Team A Players (optional)</label>
+    <textarea id="playersA" placeholder="@player - points"></textarea>
+  </div>
+
+  <div class="card">
+    <label>Team B</label>
+    <select id="teamB"></select>
+
+    <label>Team B Score</label>
+    <input id="scoreB" type="number">
+
+    <label>Team B Players (optional)</label>
+    <textarea id="playersB" placeholder="@player - points"></textarea>
+  </div>
+
+  <button onclick="submitGame()">Submit Game</button>
+
+</main>
+
+<script>
+const sb = supabase.createClient(
+  'https://orreqxjbzqcjrzuazpco.supabase.co',
+  'YOUR_ANON_KEY'
+);
+
+const TEAMS = [
+  "Penguins 🐧",
+  "Bay Stars ✨",
+  "Wolves",
+  "Falcons",
+  "Reapers",
+  "Beasts"
+];
+
+function loadTeams() {
+  const a = document.getElementById("teamA");
+  const b = document.getElementById("teamB");
+
+  TEAMS.forEach(t => {
+    a.innerHTML += `<option>${t}</option>`;
+    b.innerHTML += `<option>${t}</option>`;
+  });
+}
+
+loadTeams();
+
+async function submitGame() {
+  const md = document.getElementById("matchday").value;
+  const a = document.getElementById("teamA").value;
+  const b = document.getElementById("teamB").value;
+  const sa = document.getElementById("scoreA").value;
+  const sbv = document.getElementById("scoreB").value;
+  const pa = document.getElementById("playersA").value;
+  const pb = document.getElementById("playersB").value;
+
+  if (!md || !a || !b || !sa || !sbv) {
+    alert("Fill required fields");
+    return;
+  }
+
+  const gameText = `
+Matchday ${md}:
+—
+${a}
+${pa || ""}
+Total: ${sa}
+🆚
+${b}
+${pb || ""}
+Total: ${sbv}
+—
+`;
+
+  const { error } = await sb.from("transactions").insert({
+    type: "game",
+    description: gameText,
+    created_at: new Date().toISOString()
+  });
+
+  if (error) {
+    alert("Error: " + error.message);
+    return;
+  }
+
+  alert("Game submitted!");
+}
+</script>
+
+</body>
+</html>
