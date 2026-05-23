@@ -261,8 +261,8 @@ function render(){
         ${
           commish
           ? `<input value="${p}" onchange="editPlayer('${team}',${i},this.value)">`
-          : <div class="username">
-  <a href="profile.html?user=${encodeURIComponent(p)}">${p}</a>
+          : ` <div class="username">
+  <a href="profile.html?user=${encodeURIComponent(p)}">${p}</a>`
 </div>
         }
         <div class="badge">Player</div>
@@ -282,8 +282,8 @@ function render(){
           ${
             commish
             ? `<input value="${t.gm}" onchange="editGM('${team}',this.value)">`
-            : <div class="gm">
-  <a href="profile.html?user=${encodeURIComponent(t.gm)}">GM @${t.gm}</a>
+            :  ` <div class="gm">
+  <a href="profile.html?user=${encodeURIComponent(t.gm)}">GM @${t.gm}</a> `
 </div>
           }
 
