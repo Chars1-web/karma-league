@@ -280,7 +280,9 @@ function render(){
           ${
             commish
             ? `<input value="${t.gm}" onchange="editGM('${team}',this.value)">`
-            : `<div class="gm">GM @${t.gm}</div>`
+            : <div class="gm">
+  <a href="profile.html?user=${encodeURIComponent(t.gm)}">GM @${t.gm}</a>
+</div>
           }
 
         </div>
