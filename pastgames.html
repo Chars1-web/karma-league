@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RRL – Past Games</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  :root {
+    --bg:#050508;
+    --card:#13131c;
+    --border:#1e1e2e;
+    --accent:#00e5ff;
+    --text:#f0f0f0;
+    --muted:#6b6b80;
+    --win:#00ff88;
+  }
+
+  body {
+    margin:0;
+    font-family:'DM Sans', sans-serif;
+    background:var(--bg);
+    color:var(--text);
+  }
+
+  header {
+    text-align:center;
+    padding:40px 20px 20px;
+    border-bottom:1px solid var(--border);
+  }
+
+  h1 {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:60px;
+    margin:0;
+  }
+
+  h1 span { color:var(--accent); }
+
+  main {
+    max-width:800px;
+    margin:0 auto;
+    padding:30px 16px;
+  }
+
+  .game {
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:18px;
+    margin-bottom:14px;
+  }
+
+  .matchday {
+    font-size:12px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:10px;
+    font-weight:700;
+  }
+
+  .matchup {
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    gap:12px;
+    align-items:start;
+  }
+
+  .team {
+    background:rgba(255,255,255,0.03);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px;
+  }
+
+  .team-name {
+    font-weight:700;
+    margin-bottom:8px;
+    font-size:15px;
+  }
+
+  .player {
+    font-size:12px;
+    color:var(--muted);
+    margin:2px 0;
+  }
+
+  .total {
+    margin-top:8px;
+    font-weight:700;
+    color:var(--accent);
+  }
+
+  .vs {
+    font-weight:900;
+    color:var(--muted);
+    align-self:center;
+  }
+
+  .empty {
+    text-align:center;
+    color:var(--muted);
+    padding:40px 0;
+  }
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>RRL <span>Games</span></h1>
+</header>
+
+<main id="games">
+  <div class="empty">Loading games...</div>
+</main>
+
+<script>
+const sb = supabase.createClient(
+  'https://orreqxjbzqcjrzuazpco.supabase.co',
+  'YOUR_ANON_KEY'
+);
+
+function parseGame(text) {
+  // splits into parts based on 🆚
+  const parts = text.split("🆚");
+  if (parts.length < 2) return null;
+
+  const left = parts[0].split("—").join("").trim();
+  const right = parts[1].split("—").join("").trim();
+
+  return { left, right };
+}
+
+function renderTeam(block) {
+  const lines = block.trim().split("\n").filter(l => l.trim());
+
+  const name = lines[0] || "Team";
+  let players = [];
+  let total = "";
+
+  lines.slice(1).forEach(l => {
+    if (l.toLowerCase().includes("total")) {
+      total = l;
+    } else {
+      players.push(l);
+    }
+  });
+
+  return `
+    <div class="team">
+      <div class="team-name">${name}</div>
+      ${players.map(p => `<div class="player">${p}</div>`).join("")}
+      <div class="total">${total}</div>
+    </div>
+  `;
+}
+
+async function loadGames() {
+  const el = document.getElementById("games");
+
+  const { data, error } = await sb
+    .from("transactions")
+    .select("*")
+    .eq("type", "game")
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    el.innerHTML = `<div class="empty">Error loading games</div>`;
+    return;
+  }
+
+  if (!data.length) {
+    el.innerHTML = `<div class="empty">No past games yet</div>`;
+    return;
+  }
+
+  el.innerHTML = data.map(g => {
+    const parsed = parseGame(g.description || "");
+    if (!parsed) {
+      return `<div class="game">${g.description}</div>`;
+    }
+
+    return `
+      <div class="game">
+        <div class="matchday">Matchday</div>
+        <div class="matchup">
+          ${renderTeam(parsed.left)}
+          <div class="vs">VS</div>
+          ${renderTeam(parsed.right)}
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+loadGames();
+</script>
+
+</body>
+</html>
