@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>RRL Leaderboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+  --bg:#07080c;
+  --card:#11131b;
+  --border:#1d2230;
+  --accent:#e8ff3c;
+  --text:#f5f5f5;
+  --muted:#8a8fa3;
+}
+
+body{
+  margin:0;
+  padding:30px 16px;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+}
+
+h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:52px;
+  text-align:center;
+  letter-spacing:2px;
+  margin-bottom:10px;
+}
+
+.sub{
+  text-align:center;
+  color:var(--muted);
+  margin-bottom:25px;
+  font-size:13px;
+}
+
+table{
+  width:100%;
+  max-width:900px;
+  margin:auto;
+  border-collapse:collapse;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+}
+
+th, td{
+  padding:12px;
+  border-bottom:1px solid #1d2230;
+  text-align:left;
+  font-size:13px;
+}
+
+th{
+  color:var(--accent);
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+
+tr:hover{
+  background:#141827;
+}
+
+.highlight{
+  background:#1a1f2e !important;
+  border-left:3px solid var(--accent);
+}
+
+.back{
+  text-align:center;
+  margin-top:20px;
+}
+
+a{
+  color:var(--accent);
+  text-decoration:none;
+}
+
+.loading{
+  text-align:center;
+  color:var(--muted);
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>RRL Leaderboard</h1>
+<div class="sub">Ranked by Points Forced (Column F)</div>
+
+<div id="wrap" class="loading">Loading leaderboard...</div>
+
+<div class="back">
+  <a href="index.html">← Back Home</a>
+</div>
+
+<script>
+
+const SHEET_URL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vS7OR3Jlik3PnCF6unj_M78_LjWaEkd6gfO85-BPeEP3uW-9JO0oWfRVxeTloj-oU6Aq38YGlCEbiAD/pub?gid=1287343484&single=true&output=csv";
+
+const params = new URLSearchParams(window.location.search);
+const selectedUser = (params.get("user") || "").trim();
+
+function parseCSV(text){
+  return text.trim().split("\n").map(r => r.split(","));
+}
+
+async function load(){
+
+  const res = await fetch(SHEET_URL);
+  const text = await res.text();
+
+  const rows = parseCSV(text).slice(1);
+
+  let players = [];
+
+  for(const r of rows){
+
+    const name = (r[1] || "").trim(); // B
+    if(!name) continue;
+
+    players.push({
+      name,
+      team: r[2] || "—",      // C
+      games: Number(r[3])||0,  // D
+      rating: Number(r[4])||0, // E
+      points: Number(r[5])||0  // F
+    });
+
+  }
+
+  // SORT BY POINTS FORCED
+  players.sort((a,b)=>b.points-a.points);
+
+  let html = `
+  <table>
+    <tr>
+      <th>Rank</th>
+      <th>Player</th>
+      <th>Team</th>
+      <th>Games</th>
+      <th>Rating</th>
+      <th>Points Forced</th>
+    </tr>
+  `;
+
+  players.forEach((p,i)=>{
+
+    const isSelected = p.name === selectedUser;
+
+    html += `
+      <tr class="${isSelected ? "highlight" : ""}">
+        <td>${i+1}</td>
+        <td>
+          <a href="profile.html?user=${encodeURIComponent(p.name)}">
+            ${p.name}
+          </a>
+        </td>
+        <td>${p.team}</td>
+        <td>${p.games}</td>
+        <td>${p.rating}</td>
+        <td>${p.points}</td>
+      </tr>
+    `;
+
+  });
+
+  html += `</table>`;
+
+  document.getElementById("wrap").innerHTML = html;
+
+}
+
+load();
+
+</script>
+
+</body>
+</html>
