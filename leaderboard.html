@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RRL Leaderboard</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -20,9 +21,7 @@
   --highlight: #1a1f2e;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -30,7 +29,6 @@ body {
   background: linear-gradient(135deg, var(--bg) 0%, #0a0d13 100%);
   color: var(--text);
   font-family: 'DM Sans', sans-serif;
-  min-height: 100vh;
 }
 
 .container {
@@ -43,127 +41,64 @@ h1 {
   font-size: 56px;
   text-align: center;
   letter-spacing: 3px;
-  margin: 0 0 8px 0;
-  color: var(--text);
-  text-shadow: 0 2px 20px rgba(232, 255, 60, 0.1);
+  margin-bottom: 8px;
 }
 
-.sub {
-  text-align: center;
-  color: var(--muted);
-  margin-bottom: 40px;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 1px;
-}
-
-/* =======================
-   FIX IS HERE 👇
-======================= */
-
+/* ✅ ONLY FIX: SCROLL */
 .table-wrapper {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
-  overflow-x: auto;        /* ✅ enables horizontal scroll */
+  overflow-x: auto;
   overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
-              inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 table {
   width: 100%;
-  min-width: 900px;        /* ✅ forces scroll instead of squish */
+  min-width: 850px;
   border-collapse: collapse;
-}
-
-/* ======================= */
-
-thead {
-  background: linear-gradient(90deg, rgba(29, 34, 48, 0.8), rgba(29, 34, 48, 0.4));
-  border-bottom: 2px solid var(--border);
 }
 
 th {
   padding: 16px 14px;
   color: var(--accent);
   font-size: 11px;
-  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
-  text-align: left;
   cursor: pointer;
-  user-select: none;
-  transition: all 0.2s ease;
-  position: relative;
   white-space: nowrap;
 }
 
-th:hover {
-  background: rgba(232, 255, 60, 0.08);
-}
-
-.sort-icon {
-  display: inline-block;
-  margin-left: 6px;
-  font-size: 10px;
-  opacity: 0.4;
-}
-
-tbody tr {
-  border-bottom: 1px solid rgba(29, 34, 48, 0.8);
-  transition: all 0.15s ease;
-}
-
-tbody tr:hover {
-  background: var(--hover);
-}
+tbody tr:hover { background: var(--hover); }
 
 td {
   padding: 14px;
   font-size: 14px;
-  color: var(--text);
 }
 
-.rank-col {
-  font-weight: 700;
-  color: var(--accent);
-  width: 50px;
-  text-align: center;
-}
+.rank-col { color: var(--accent); font-weight: 700; }
 
 .player-col a {
   color: var(--accent);
   text-decoration: none;
 }
 
-.player-col a:hover {
-  color: var(--accent-dark);
-}
+.player-col a:hover { color: var(--accent-dark); }
 
-.team-col {
-  color: var(--muted);
-}
+.team-col { color: var(--muted); }
 
-.stat-col {
-  text-align: right;
-}
+.stat-col { text-align: right; }
 
 .highlight {
-  background: var(--highlight) !important;
+  background: var(--highlight);
   border-left: 4px solid var(--accent);
 }
 
 .back {
   text-align: center;
-  margin-top: 32px;
+  margin-top: 20px;
 }
 
-a {
-  color: var(--accent);
-  text-decoration: none;
-}
+a { color: var(--accent); text-decoration: none; }
 
 </style>
 </head>
@@ -172,9 +107,8 @@ a {
 
 <div class="container">
   <h1>RRL Leaderboard</h1>
-  <div class="sub">Click column headers to sort</div>
 
-  <div id="wrap" class="loading">Loading leaderboard...</div>
+  <div id="wrap">Loading...</div>
 
   <div class="back">
     <a href="index.html">← Back Home</a>
@@ -188,60 +122,60 @@ const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS7OR3Jlik3Pn
 const params = new URLSearchParams(window.location.search);
 const selectedUser = (params.get("user") || "").trim();
 
-function parseCSV(text) {
+let players = [];
+let sortColumn = "points";
+let sortDir = "desc";
+
+function parseCSV(text){
   return text.trim().split("\n").map(r => r.split(","));
 }
 
-async function load() {
-
-  const res = await fetch(SHEET_URL);
-  const text = await res.text();
-
-  const rows = parseCSV(text).slice(1);
-
-  let players = [];
-
-  for (const r of rows) {
-
-    const name = (r[1] || "").trim();
-    if (!name) continue;
-
-    players.push({
-      name,
-      team: r[2] || "—",
-      games: Number(r[3]) || 0,
-      rating: Number(r[4]) || 0,
-      points: Number(r[5]) || 0
-    });
-
+function sortData(col){
+  if(sortColumn === col){
+    sortDir = sortDir === "asc" ? "desc" : "asc";
+  } else {
+    sortColumn = col;
+    sortDir = "desc";
   }
 
-  players.sort((a, b) => b.points - a.points);
+  players.sort((a,b)=>{
+    let x = a[col];
+    let y = b[col];
+
+    if(typeof x === "string") x = x.toLowerCase();
+    if(typeof y === "string") y = y.toLowerCase();
+
+    if(sortDir === "asc") return x > y ? 1 : -1;
+    return x < y ? 1 : -1;
+  });
+
+  render();
+}
+
+function render(){
 
   let html = `
   <div class="table-wrapper">
   <table>
-    <tr>
-      <th>Rank</th>
-      <th>Player</th>
-      <th>Team</th>
-      <th>Games</th>
-      <th>Rating</th>
-      <th>Points Forced</th>
-    </tr>
+    <thead>
+      <tr>
+        <th onclick="sortData('rank')">Rank</th>
+        <th onclick="sortData('name')">Player</th>
+        <th onclick="sortData('team')">Team</th>
+        <th onclick="sortData('games')">Games</th>
+        <th onclick="sortData('rating')">Rating</th>
+        <th onclick="sortData('points')">Points Forced</th>
+      </tr>
+    </thead>
+    <tbody>
   `;
 
-  players.forEach((p, i) => {
-
-    const isSelected = p.name === selectedUser;
-
+  players.forEach((p,i)=>{
     html += `
-      <tr class="${isSelected ? "highlight" : ""}">
-        <td class="rank-col">${i + 1}</td>
+      <tr class="${p.name===selectedUser?'highlight':''}">
+        <td class="rank-col">${i+1}</td>
         <td class="player-col">
-          <a href="profile.html?user=${encodeURIComponent(p.name)}">
-            ${p.name}
-          </a>
+          <a href="profile.html?user=${encodeURIComponent(p.name)}">${p.name}</a>
         </td>
         <td class="team-col">${p.team}</td>
         <td class="stat-col">${p.games}</td>
@@ -251,9 +185,28 @@ async function load() {
     `;
   });
 
-  html += `</table></div>`;
+  html += `</tbody></table></div>`;
 
   document.getElementById("wrap").innerHTML = html;
+}
+
+async function load(){
+
+  const res = await fetch(SHEET_URL);
+  const text = await res.text();
+
+  const rows = parseCSV(text).slice(1);
+
+  players = rows.map(r => ({
+    rank: 0,
+    name: (r[1]||"").trim(),
+    team: r[2]||"—",
+    games: Number(r[3])||0,
+    rating: Number(r[4])||0,
+    points: Number(r[5])||0
+  })).filter(p=>p.name);
+
+  sortData("points");
 }
 
 load();
