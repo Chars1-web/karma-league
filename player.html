@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Karma Rank League - Player Stats</title>
+<title>RRL Player Stats</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
 
@@ -21,12 +21,15 @@ h1{
     font-family:'Bebas Neue';
     font-size:58px;
     color:#00e5ff;
+    margin-bottom:10px;
 }
 
 table{
     width:100%;
     border-collapse:collapse;
     background:#0d0d0d;
+    border-radius:10px;
+    overflow:hidden;
 }
 
 th,td{
@@ -35,52 +38,73 @@ th,td{
     border-bottom:1px solid #222;
 }
 
-th{ color:#00e5ff; background:#111; }
-tr:hover{ background:#151515; cursor:pointer; }
+th{
+    color:#00e5ff;
+    background:#111;
+}
+
+tr:hover{
+    background:#151515;
+}
 </style>
 </head>
+
 <body>
 
-<h1>PLAYER STATS</h1>
+<h1>RRL PLAYER LEADERBOARD</h1>
 
-<table id="table">
+<table>
 <thead>
 <tr>
+<th>#</th>
 <th>User</th>
 <th>Team</th>
-<th>Avg</th>
 <th>GP</th>
+<th>AVG</th>
 <th>UNR</th>
 </tr>
 </thead>
-<tbody></tbody>
+
+<tbody id="tbody"></tbody>
 </table>
 
 <script>
+
 const csvURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSelmU6cnQuqpr25DszbMhGEal7AzZbyq5m45h1S14nYn4jO5sWsRRz8Mg5wSdGRfLX_SqOVCduvueD/pub?gid=0&single=true&output=csv";
 
-let players = [];
-
 function parseCSV(text){
-    const rows = [];
+    const rows=[];
     let row=[],val="",q=false;
 
     for(let i=0;i<text.length;i++){
-        const c=text[i],n=text[i+1];
+        const c=text[i];
 
         if(c=='"'){ q=!q; continue; }
 
-        if(c=="," && !q){ row.push(val); val=""; continue; }
+        if(c=="," && !q){
+            row.push(val);
+            val="";
+            continue;
+        }
 
         if((c=="\n"||c=="\r") && !q){
-            if(val || row.length){ row.push(val); rows.push(row); row=[]; val=""; }
+            if(row.length || val){
+                row.push(val);
+                rows.push(row);
+                row=[];
+                val="";
+            }
             continue;
         }
 
         val+=c;
     }
 
-    if(val||row.length){ row.push(val); rows.push(row); }
+    if(row.length || val){
+        row.push(val);
+        rows.push(row);
+    }
+
     return rows;
 }
 
@@ -90,69 +114,79 @@ fetch(csvURL)
 .then(t=>{
 const data=parseCSV(t);
 
-players=[];
+let players=[];
 
 for(let i=1;i<data.length;i++){
 const r=data[i];
+if(!r[0]) continue;
 
-const username = r[0]?.trim();
-const team = r[1]?.trim();
+const username = (r[0] || "").trim();
+const team = (r[1] || "").trim();
 
-// C onwards = games
+// games start at column C
 const gamesRaw = r.slice(2);
 
 let games = [];
 let unr = 0;
 
-gamesRaw.forEach(g => {
+gamesRaw.forEach(g=>{
     g = (g || "").trim();
 
-    if (g === "") return;
-    if (g === "UNR") {
+    if(g === "") return;
+
+    if(g === "UNR"){
         unr++;
-        games.push("UNR");
         return;
     }
 
-    let n = parseFloat(g);
-    if (!isNaN(n)) games.push(n);
+    let num = parseFloat(g);
+    if(!isNaN(num)) games.push(num);
 });
 
-let nums = games.filter(g => typeof g === "number");
+// average only real games
+let avg = games.length
+    ? (games.reduce((a,b)=>a+b,0)/games.length).toFixed(1)
+    : "-";
 
 players.push({
-    username,
-    team,
-    games,
-    gp: games.length,
-    unr,
-    avg: nums.length
-        ? (nums.reduce((a, b) => a + b, 0) / nums.length).toFixed(1)
-        : "-"
+username,
+team,
+gp: games.length + unr,
+avg: avg,
+unr
+});
 });
 
+// SORT (leaderboard logic)
+players.sort((a,b)=>
+    (parseFloat(b.avg)||0) - (parseFloat(a.avg)||0) ||
+    a.unr - b.unr
+);
 
 render(players);
 });
 }
 
 function render(data){
-const tbody=document.querySelector("tbody");
+const tbody=document.getElementById("tbody");
 tbody.innerHTML="";
 
-data.forEach(p=>{
+data.forEach((p,i)=>{
 tbody.innerHTML+=`
 <tr>
+<td>${i+1}</td>
 <td>${p.username}</td>
 <td>${p.team}</td>
-<td>${p.avg}</td>
 <td>${p.gp}</td>
+<td>${p.avg}</td>
 <td>${p.unr}</td>
-</tr>`;
+</tr>
+`;
 });
 }
 
 load();
+
 </script>
 
 </body>
