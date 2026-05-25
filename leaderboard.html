@@ -105,6 +105,26 @@ tbody tr:hover {
   border-left:4px solid var(--accent);
 }
 
+/* 🏆 TOP 3 GLOW */
+.top-1 {
+  background: rgba(232, 255, 60, 0.10);
+  box-shadow: inset 4px 0 0 gold;
+}
+
+.top-2 {
+  background: rgba(192, 192, 192, 0.08);
+  box-shadow: inset 4px 0 0 silver;
+}
+
+.top-3 {
+  background: rgba(205, 127, 50, 0.08);
+  box-shadow: inset 4px 0 0 #cd7f32;
+}
+
+.top-1 td {
+  text-shadow: 0 0 8px rgba(232,255,60,0.25);
+}
+
 .back {
   text-align:center;
   margin-top:25px;
@@ -149,7 +169,7 @@ function parseCSV(text){
 }
 
 /* =========================
-   SORT FUNCTION
+   SORT
 ========================= */
 function sortData(col){
 
@@ -179,7 +199,7 @@ function sortData(col){
 }
 
 /* =========================
-   RENDER (ORDER UPDATED)
+   RENDER (TOP 3 ADDED)
 ========================= */
 function render(){
 
@@ -204,11 +224,25 @@ function render(){
 
   players.forEach((p,i)=>{
 
+    let rowClass = "";
+    let medal = "";
+
+    if(i === 0){
+      rowClass = "top-1";
+      medal = "🥇 ";
+    } else if(i === 1){
+      rowClass = "top-2";
+      medal = "🥈 ";
+    } else if(i === 2){
+      rowClass = "top-3";
+      medal = "🥉 ";
+    }
+
     html += `
-      <tr class="${p.name===selectedUser?'highlight':''}">
+      <tr class="${rowClass} ${p.name===selectedUser?'highlight':''}">
         <td class="rank-col">${i+1}</td>
         <td class="player-col">
-          <a href="profile.html?user=${encodeURIComponent(p.name)}">${p.name}</a>
+          <a href="profile.html?user=${encodeURIComponent(p.name)}">${medal}${p.name}</a>
         </td>
         <td class="team-col">${p.team}</td>
         <td class="stat-col">${p.rating}</td>
@@ -247,7 +281,6 @@ async function load(){
     points:Number(r[5])||0
   })).filter(p=>p.name);
 
-  // DEFAULT SORT = POINTS FOR
   sortColumn = "points";
   sortDir = "desc";
   players.sort((a,b)=>b.points - a.points);
