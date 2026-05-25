@@ -225,25 +225,25 @@ function render(){
   players.forEach((p,i)=>{
 
   let rowClass = "";
-  let rankDisplay = i + 1;
+  let rankDisplay = "";
 
   if(i === 0){
     rowClass = "top-1";
-    rankDisplay = "🥇 1";
+    rankDisplay = "🥇";
   } 
   else if(i === 1){
     rowClass = "top-2";
-    rankDisplay = "🥈 2";
+    rankDisplay = "🥈";
   } 
   else if(i === 2){
     rowClass = "top-3";
-    rankDisplay = "🥉 3";
+    rankDisplay = "🥉";
   }
 
   html += `
     <tr class="${rowClass} ${p.name===selectedUser?'highlight':''}">
       
-      <!-- ✅ MEDALS MOVE HERE -->
+      <!-- 🔥 Rank column ONLY shows medals for top 3 -->
       <td class="rank-col">${rankDisplay}</td>
 
       <td class="player-col">
