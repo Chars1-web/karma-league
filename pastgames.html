@@ -97,6 +97,31 @@
     border-radius:16px;
     padding:18px;
     margin-bottom:14px;
+    position:relative;
+  }
+
+  .game-delete-btn {
+    position:absolute;
+    top:12px;
+    right:12px;
+    padding:8px 12px;
+    background:rgba(255,68,68,0.2);
+    border:1px solid var(--error);
+    border-radius:6px;
+    color:var(--error);
+    cursor:pointer;
+    font-weight:600;
+    font-size:11px;
+    transition:all 0.2s ease;
+    display:none;
+  }
+
+  .game-delete-btn:hover {
+    background:rgba(255,68,68,0.3);
+  }
+
+  .game.show-delete .game-delete-btn {
+    display:block;
   }
 
   .matchday {
@@ -357,6 +382,11 @@
   <main id="gamesList">
     <div class="empty">Loading games...</div>
   </main>
+  <div style="text-align:center; padding:20px;">
+    <button class="btn-secondary" id="toggleDeleteBtn" onclick="toggleDeleteMode()" style="padding:10px 20px; background:transparent; border:1px solid var(--muted); border-radius:8px; color:var(--muted); cursor:pointer; font-weight:600; font-size:12px; font-family:'DM Sans', sans-serif; text-transform:uppercase; transition:all 0.2s ease; margin-top:10px;">
+      🔐 Lock
+    </button>
+  </div>
 </div>
 
 <!-- Add Game Tab -->
@@ -377,13 +407,14 @@
     <div class="form-section">
       <h3>Team 1</h3>
       <div class="form-group">
-        <label>Team Name</label>
-        <input type="text" id="team1Name" placeholder="Enter team name">
+        <label>Select Team</label>
+        <select id="team1Name" style="width:100%; padding:12px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'DM Sans', sans-serif; font-size:14px; cursor:pointer;">
+          <option value="">Choose a team...</option>
+        </select>
       </div>
       <div class="player-inputs" id="team1Players">
         <div class="player-input">
           <input type="text" placeholder="Player 1" class="team1-player">
-          <input type="number" placeholder="Score" min="0" class="team1-score" style="width:80px;">
         </div>
       </div>
       <button class="btn-add-player" onclick="addPlayerInput('team1')">+ Add Player</button>
@@ -396,13 +427,14 @@
     <div class="form-section">
       <h3>Team 2</h3>
       <div class="form-group">
-        <label>Team Name</label>
-        <input type="text" id="team2Name" placeholder="Enter team name">
+        <label>Select Team</label>
+        <select id="team2Name" style="width:100%; padding:12px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'DM Sans', sans-serif; font-size:14px; cursor:pointer;">
+          <option value="">Choose a team...</option>
+        </select>
       </div>
       <div class="player-inputs" id="team2Players">
         <div class="player-input">
           <input type="text" placeholder="Player 1" class="team2-player">
-          <input type="number" placeholder="Score" min="0" class="team2-score" style="width:80px;">
         </div>
       </div>
       <button class="btn-add-player" onclick="addPlayerInput('team2')">+ Add Player</button>
@@ -459,10 +491,7 @@ function addPlayerInput(team) {
   div.className = 'player-input';
   div.innerHTML = `
     <input type="text" placeholder="Player ${count}" class="${team}-player">
-    <div style="display:flex; gap:8px; align-items:flex-end;">
-      <input type="number" placeholder="Score" min="0" class="${team}-score" style="width:80px;">
-      <button class="btn-remove-player" onclick="this.parentElement.parentElement.remove()">Remove</button>
-    </div>
+    <button class="btn-remove-player" onclick="this.parentElement.remove()">Remove</button>
   `;
   
   container.appendChild(div);
@@ -474,24 +503,21 @@ function formatGameData() {
   const team2Name = document.getElementById('team2Name').value.trim();
   
   if (!team1Name || !team2Name) {
-    showMessage('Please enter both team names', 'error');
+    showMessage('Please select both teams', 'error');
+    return null;
+  }
+
+  if (team1Name === team2Name) {
+    showMessage('Please select two different teams', 'error');
     return null;
   }
 
   const team1Players = Array.from(document.querySelectorAll('.team1-player'))
-    .map((inp, i) => {
-      const name = inp.value.trim();
-      const score = document.querySelectorAll('.team1-score')[i]?.value.trim();
-      return name ? `${name}${score ? ' ' + score : ''}` : null;
-    })
+    .map(inp => inp.value.trim())
     .filter(Boolean);
 
   const team2Players = Array.from(document.querySelectorAll('.team2-player'))
-    .map((inp, i) => {
-      const name = inp.value.trim();
-      const score = document.querySelectorAll('.team2-score')[i]?.value.trim();
-      return name ? `${name}${score ? ' ' + score : ''}` : null;
-    })
+    .map(inp => inp.value.trim())
     .filter(Boolean);
 
   const team1Total = document.getElementById('team1Total').value.trim();
@@ -502,7 +528,7 @@ function formatGameData() {
     return null;
   }
 
-  // Format: Team Name\nPlayer Score\n...\nTotal: X 🆚 Team Name\nPlayer Score\n...\nTotal: X
+  // Format: Team Name\nPlayer\n...\nTotal: X 🆚 Team Name\nPlayer\n...\nTotal: X
   const description = `${team1Name}
 ${team1Players.join('\n')}
 Total: ${team1Total} 🆚 ${team2Name}
@@ -632,11 +658,15 @@ async function loadGames() {
   el.innerHTML = data.map(g => {
     const parsed = parseGame(g.description || "");
     if (!parsed) {
-      return `<div class="game">${g.description}</div>`;
+      return `<div class="game" data-game-id="${g.id}">
+        <button class="game-delete-btn" onclick="deleteGame('${g.id}')">Delete</button>
+        ${g.description}
+      </div>`;
     }
 
     return `
-      <div class="game">
+      <div class="game" data-game-id="${g.id}">
+        <button class="game-delete-btn" onclick="deleteGame('${g.id}')">Delete</button>
         <div class="matchday">Matchday</div>
         <div class="matchup">
           ${renderTeam(parsed.left)}
@@ -648,7 +678,83 @@ async function loadGames() {
   }).join("");
 }
 
+// Load Teams from Supabase
+async function loadTeams() {
+  try {
+    const { data, error } = await sb
+      .from('roster')
+      .select('team')
+      .neq('team', null);
+
+    if (error || !data) {
+      console.error('Error loading teams:', error);
+      return;
+    }
+
+    // Get unique team names
+    const teams = [...new Set(data.map(row => row.team).filter(Boolean))].sort();
+
+    // Populate both dropdowns
+    const team1Select = document.getElementById('team1Name');
+    const team2Select = document.getElementById('team2Name');
+
+    teams.forEach(team => {
+      const option1 = document.createElement('option');
+      option1.value = team;
+      option1.textContent = team;
+      team1Select.appendChild(option1);
+
+      const option2 = document.createElement('option');
+      option2.value = team;
+      option2.textContent = team;
+      team2Select.appendChild(option2);
+    });
+  } catch (err) {
+    console.error('Error loading teams:', err);
+  }
+}
+
+// Toggle Delete Mode
+let deleteMode = false;
+function toggleDeleteMode() {
+  deleteMode = !deleteMode;
+  const btn = document.getElementById('toggleDeleteBtn');
+  const games = document.querySelectorAll('.game');
+  
+  if (deleteMode) {
+    btn.textContent = '🔓 Unlock';
+    btn.style.color = 'var(--error)';
+    btn.style.borderColor = 'var(--error)';
+    games.forEach(game => game.classList.add('show-delete'));
+  } else {
+    btn.textContent = '🔐 Lock';
+    btn.style.color = 'var(--muted)';
+    btn.style.borderColor = 'var(--muted)';
+    games.forEach(game => game.classList.remove('show-delete'));
+  }
+}
+
+// Delete Game
+async function deleteGame(gameId) {
+  if (!confirm('Are you sure you want to delete this game?')) {
+    return;
+  }
+
+  const { error } = await sb
+    .from('transactions')
+    .delete()
+    .eq('id', gameId);
+
+  if (error) {
+    alert('Error deleting game: ' + error.message);
+    return;
+  }
+
+  loadGames();
+}
+
 loadGames();
+loadTeams();
 </script>
 
 </body>
