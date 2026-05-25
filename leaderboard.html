@@ -30,7 +30,6 @@ body {
   font-family:'DM Sans',sans-serif;
 }
 
-/* 🔥 FIX #1 — stops scroll “re-center” behavior */
 html, body {
   height: 100%;
   overflow-anchor: none;
@@ -49,15 +48,11 @@ h1 {
   margin-bottom:10px;
 }
 
-/* =========================
-   TABLE (UNCHANGED)
-========================= */
-
+/* TABLE */
 .table-wrapper {
   background:var(--card);
   border:1px solid var(--border);
   border-radius:16px;
-
   overflow-x:auto;
   overflow-y:hidden;
 }
@@ -165,11 +160,9 @@ function parseCSV(text){
 }
 
 /* =========================
-   SORT (FIXED ONLY)
+   SORT FUNCTION (FIXED)
 ========================= */
 function sortData(col){
-
-  const scrollY = window.scrollY; // 🔥 FIX: prevents jump
 
   if(sortColumn === col){
     sortDir = sortDir === "asc" ? "desc" : "asc";
@@ -177,6 +170,8 @@ function sortData(col){
     sortColumn = col;
     sortDir = "desc";
   }
+
+  const dir = sortDir === "asc" ? 1 : -1;
 
   players.sort((a,b)=>{
 
@@ -186,17 +181,16 @@ function sortData(col){
     if(typeof x === "string") x = x.toLowerCase();
     if(typeof y === "string") y = y.toLowerCase();
 
-    if(sortDir === "asc") return x > y ? 1 : -1;
-    return x < y ? 1 : -1;
+    if(x > y) return dir;
+    if(x < y) return -dir;
+    return 0;
   });
 
   render();
-
-  window.scrollTo(0, scrollY); // 🔥 FIX: locks position
 }
 
 /* =========================
-   RENDER (UNCHANGED)
+   RENDER
 ========================= */
 function render(){
 
@@ -238,7 +232,7 @@ function render(){
 }
 
 /* =========================
-   LOAD (UNCHANGED)
+   LOAD (DEFAULT = POINTS FOR)
 ========================= */
 async function load(){
 
@@ -256,7 +250,13 @@ async function load(){
     points:Number(r[5])||0
   })).filter(p=>p.name);
 
-  sortData("points");
+  // 🔥 DEFAULT SORT: POINTS FOR (DESC)
+  sortColumn = "points";
+  sortDir = "desc";
+
+  players.sort((a,b)=>b.points - a.points);
+
+  render();
 }
 
 load();
