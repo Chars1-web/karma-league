@@ -352,10 +352,14 @@ main{
 </div>
 
 <script>
+<script>
 const sb = window.supabase.createClient(
   'https://orreqxjbzqcjrzuazpco.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycmVxeGpienFjanJ6dWF6cGNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMjU0OTYsImV4cCI6MjA4OTgwMTQ5Nn0.Ew5tD42tqmNMa0Ctf14QoD9UFI1ElGE-Zk0cCdwAoVE'
+  'YOUR_ANON_KEY_HERE'
 );
+
+let deleteMode = false;
+let isCommish = false; // ✅ ADDED
 
 function switchTab(event,tab){
   document.querySelectorAll('.tab-content')
@@ -372,10 +376,12 @@ function verifyPassword(){
   const password = document.getElementById('commishPassword').value;
 
   if(password === 'RRL2026'){
+    isCommish = true; // ✅ ADDED
+
     document.getElementById('passwordPrompt').style.display='none';
     document.getElementById('gameForm').style.display='block';
     document.getElementById('passwordError').style.display='none';
-  }else{
+  } else {
     document.getElementById('passwordError').style.display='block';
   }
 }
@@ -473,7 +479,6 @@ async function loadGames(){
 
   el.innerHTML = data.map(g=>`
     <div class="game" data-game-id="${g.id}">
-
       <button class="game-delete-btn"
         onclick="deleteGame('${g.id}')">
         Delete
@@ -482,7 +487,6 @@ async function loadGames(){
       <div class="matchday">${g.matchday || 'Matchday'}</div>
 
       <div class="matchup">
-
         <div class="team">
           <div class="team-name">${g.Team_a}</div>
           <div class="total">Total: ${g.score_a}</div>
@@ -494,14 +498,18 @@ async function loadGames(){
           <div class="team-name">${g.Team_b}</div>
           <div class="total">Total: ${g.score_b}</div>
         </div>
-
       </div>
-
     </div>
   `).join('');
 }
 
 async function deleteGame(gameId){
+
+  // ✅ BLOCK NON-COMMISH
+  if(!isCommish){
+    alert("Not authorized.");
+    return;
+  }
 
   if(!confirm('Delete this game?')) return;
 
@@ -518,9 +526,13 @@ async function deleteGame(gameId){
   loadGames();
 }
 
-let deleteMode = false;
-
 function toggleDeleteMode(){
+
+  // ✅ BLOCK NON-COMMISH
+  if(!isCommish){
+    alert("Commissioner login required.");
+    return;
+  }
 
   deleteMode = !deleteMode;
 
@@ -584,6 +596,7 @@ function loadTeams(){
 loadGames();
 loadTeams();
 </script>
+
 
 </body>
 </html>
