@@ -35,19 +35,6 @@ html, body {
   overflow-anchor: none;
 }
 
-.container {
-  max-width:1000px;
-  margin:0 auto;
-}
-
-h1 {
-  font-family:'Bebas Neue',sans-serif;
-  font-size:54px;
-  text-align:center;
-  letter-spacing:3px;
-  margin-bottom:10px;
-}
-
 /* TABLE */
 .table-wrapper {
   background:var(--card);
@@ -134,7 +121,9 @@ a {
 <body>
 
 <div class="container">
-  <h1>RRL Leaderboard</h1>
+  <h1 style="text-align:center;font-family:'Bebas Neue';font-size:54px;letter-spacing:3px;">
+    RRL Leaderboard
+  </h1>
 
   <div id="wrap">Loading...</div>
 
@@ -160,7 +149,7 @@ function parseCSV(text){
 }
 
 /* =========================
-   SORT FUNCTION (FIXED)
+   SORT FUNCTION
 ========================= */
 function sortData(col){
 
@@ -190,9 +179,12 @@ function sortData(col){
 }
 
 /* =========================
-   RENDER
+   RENDER (ORDER UPDATED)
 ========================= */
 function render(){
+
+  const wrapper = document.querySelector(".table-wrapper");
+  const scrollLeft = wrapper ? wrapper.scrollLeft : 0;
 
   let html = `
   <div class="table-wrapper">
@@ -202,9 +194,9 @@ function render(){
         <th onclick="sortData('rank')">Rank</th>
         <th onclick="sortData('name')">Player</th>
         <th onclick="sortData('team')">Team</th>
-        <th onclick="sortData('games')">GP</th>
         <th onclick="sortData('rating')">Rating AVG</th>
         <th onclick="sortData('points')">Points For</th>
+        <th onclick="sortData('games')">GP</th>
       </tr>
     </thead>
     <tbody>
@@ -219,9 +211,9 @@ function render(){
           <a href="profile.html?user=${encodeURIComponent(p.name)}">${p.name}</a>
         </td>
         <td class="team-col">${p.team}</td>
-        <td class="stat-col">${p.games}</td>
         <td class="stat-col">${p.rating}</td>
         <td class="stat-col">${p.points}</td>
+        <td class="stat-col">${p.games}</td>
       </tr>
     `;
   });
@@ -229,6 +221,11 @@ function render(){
   html += `</tbody></table></div>`;
 
   document.getElementById("wrap").innerHTML = html;
+
+  requestAnimationFrame(() => {
+    const newWrapper = document.querySelector(".table-wrapper");
+    if (newWrapper) newWrapper.scrollLeft = scrollLeft;
+  });
 }
 
 /* =========================
@@ -250,10 +247,9 @@ async function load(){
     points:Number(r[5])||0
   })).filter(p=>p.name);
 
-  // 🔥 DEFAULT SORT: POINTS FOR (DESC)
+  // DEFAULT SORT = POINTS FOR
   sortColumn = "points";
   sortDir = "desc";
-
   players.sort((a,b)=>b.points - a.points);
 
   render();
