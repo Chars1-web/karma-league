@@ -232,65 +232,6 @@
     min-height:100px;
   }
 
-  .player-inputs {
-    background:rgba(255,255,255,0.02);
-    border:1px solid var(--border);
-    border-radius:8px;
-    padding:16px;
-    margin-bottom:16px;
-  }
-
-  .player-input {
-    display:grid;
-    grid-template-columns:1fr auto;
-    gap:8px;
-    margin-bottom:8px;
-    align-items:flex-end;
-  }
-
-  .player-input:last-child {
-    margin-bottom:0;
-  }
-
-  .player-input input {
-    margin:0;
-  }
-
-  .btn-remove-player {
-    padding:10px 12px;
-    background:rgba(255,68,68,0.2);
-    border:1px solid var(--error);
-    border-radius:6px;
-    color:var(--error);
-    cursor:pointer;
-    font-weight:600;
-    font-size:12px;
-    transition:all 0.2s ease;
-  }
-
-  .btn-remove-player:hover {
-    background:rgba(255,68,68,0.3);
-  }
-
-  .btn-add-player {
-    padding:10px 16px;
-    background:rgba(0,229,255,0.2);
-    border:1px solid var(--accent);
-    border-radius:8px;
-    color:var(--accent);
-    cursor:pointer;
-    font-weight:600;
-    font-size:12px;
-    font-family:'DM Sans', sans-serif;
-    text-transform:uppercase;
-    transition:all 0.2s ease;
-    margin-bottom:16px;
-  }
-
-  .btn-add-player:hover {
-    background:rgba(0,229,255,0.3);
-  }
-
   .button-group {
     display:flex;
     gap:12px;
@@ -412,15 +353,9 @@
           <option value="">Choose a team...</option>
         </select>
       </div>
-      <div class="player-inputs" id="team1Players">
-        <div class="player-input">
-          <input type="text" placeholder="Player 1" class="team1-player">
-        </div>
-      </div>
-      <button class="btn-add-player" onclick="addPlayerInput('team1')">+ Add Player</button>
       <div class="form-group">
-        <label>Team Total</label>
-        <input type="number" id="team1Total" placeholder="Total score" min="0">
+        <label>Team Score</label>
+        <input type="number" id="team1Total" placeholder="Score" min="0">
       </div>
     </div>
 
@@ -432,15 +367,9 @@
           <option value="">Choose a team...</option>
         </select>
       </div>
-      <div class="player-inputs" id="team2Players">
-        <div class="player-input">
-          <input type="text" placeholder="Player 1" class="team2-player">
-        </div>
-      </div>
-      <button class="btn-add-player" onclick="addPlayerInput('team2')">+ Add Player</button>
       <div class="form-group">
-        <label>Team Total</label>
-        <input type="number" id="team2Total" placeholder="Total score" min="0">
+        <label>Team Score</label>
+        <input type="number" id="team2Total" placeholder="Score" min="0">
       </div>
     </div>
 
@@ -483,18 +412,14 @@ function verifyPassword() {
   }
 }
 
-function addPlayerInput(team) {
-  const container = document.getElementById(team + 'Players');
-  const count = container.querySelectorAll('.player-input').length + 1;
+// Reset Form
+function resetForm() {
+  document.getElementById('team1Name').value = '';
+  document.getElementById('team1Total').value = '';
+  document.getElementById('team2Name').value = '';
+  document.getElementById('team2Total').value = '';
   
-  const div = document.createElement('div');
-  div.className = 'player-input';
-  div.innerHTML = `
-    <input type="text" placeholder="Player ${count}" class="${team}-player">
-    <button class="btn-remove-player" onclick="this.parentElement.remove()">Remove</button>
-  `;
-  
-  container.appendChild(div);
+  showMessage('');
 }
 
 // Format game data
@@ -512,27 +437,17 @@ function formatGameData() {
     return null;
   }
 
-  const team1Players = Array.from(document.querySelectorAll('.team1-player'))
-    .map(inp => inp.value.trim())
-    .filter(Boolean);
-
-  const team2Players = Array.from(document.querySelectorAll('.team2-player'))
-    .map(inp => inp.value.trim())
-    .filter(Boolean);
-
   const team1Total = document.getElementById('team1Total').value.trim();
   const team2Total = document.getElementById('team2Total').value.trim();
 
-  if (!team1Players.length || !team2Players.length || !team1Total || !team2Total) {
-    showMessage('Please fill in all players and team totals', 'error');
+  if (!team1Total || !team2Total) {
+    showMessage('Please enter scores for both teams', 'error');
     return null;
   }
 
-  // Format: Team Name\nPlayer\n...\nTotal: X 🆚 Team Name\nPlayer\n...\nTotal: X
+  // Format: Team Name\nTotal: X 🆚 Team Name\nTotal: X
   const description = `${team1Name}
-${team1Players.join('\n')}
 Total: ${team1Total} 🆚 ${team2Name}
-${team2Players.join('\n')}
 Total: ${team2Total}`;
 
   return description;
@@ -573,21 +488,6 @@ async function submitGame() {
     loadGames();
     switchTab('games');
   }, 1000);
-}
-
-// Reset Form
-function resetForm() {
-  document.getElementById('team1Name').value = '';
-  document.getElementById('team1Total').value = '';
-  document.getElementById('team2Name').value = '';
-  document.getElementById('team2Total').value = '';
-  
-  document.querySelectorAll('.team1-player, .team1-score').forEach(el => el.value = '');
-  document.querySelectorAll('.team2-player, .team2-score').forEach(el => el.value = '');
-  
-  document.querySelectorAll('.team1-players .player-input:not(:first-child), .team2-players .player-input:not(:first-child)').forEach(el => el.remove());
-  
-  showMessage('');
 }
 
 // Show Message
@@ -678,40 +578,42 @@ async function loadGames() {
   }).join("");
 }
 
-// Load Teams from Supabase
+// Load Teams
 async function loadTeams() {
-  try {
-    const { data, error } = await sb
-      .from('roster')
-      .select('team')
-      .neq('team', null);
+  const teams = [
+    "Dinos 🦖",
+    "Commies ⚒️",
+    "Lions 🦁",
+    "Villains 🦹",
+    "Reapers 💀",
+    "Knights 🛡️",
+    "Penguins 🐧",
+    "Snakes 🐍",
+    "Goats 🐐",
+    "Bay Stars ✨",
+    "Kraken 🐙",
+    "Gators 🐊",
+    "Rangers 🤺",
+    "Polar Bears 🐻‍❄️",
+    "Sharks 🦈",
+    "Titans ⚔️",
+  ];
 
-    if (error || !data) {
-      console.error('Error loading teams:', error);
-      return;
-    }
+  // Populate both dropdowns
+  const team1Select = document.getElementById('team1Name');
+  const team2Select = document.getElementById('team2Name');
 
-    // Get unique team names
-    const teams = [...new Set(data.map(row => row.team).filter(Boolean))].sort();
+  teams.forEach(team => {
+    const option1 = document.createElement('option');
+    option1.value = team;
+    option1.textContent = team;
+    team1Select.appendChild(option1);
 
-    // Populate both dropdowns
-    const team1Select = document.getElementById('team1Name');
-    const team2Select = document.getElementById('team2Name');
-
-    teams.forEach(team => {
-      const option1 = document.createElement('option');
-      option1.value = team;
-      option1.textContent = team;
-      team1Select.appendChild(option1);
-
-      const option2 = document.createElement('option');
-      option2.value = team;
-      option2.textContent = team;
-      team2Select.appendChild(option2);
-    });
-  } catch (err) {
-    console.error('Error loading teams:', err);
-  }
+    const option2 = document.createElement('option');
+    option2.value = team;
+    option2.textContent = team;
+    team2Select.appendChild(option2);
+  });
 }
 
 // Toggle Delete Mode
