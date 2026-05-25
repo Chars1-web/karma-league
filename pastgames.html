@@ -17,6 +17,7 @@
     --text:#f0f0f0;
     --muted:#6b6b80;
     --win:#00ff88;
+    --error:#ff4444;
   }
 
   body {
@@ -40,12 +41,56 @@
 
   h1 span { color:var(--accent); }
 
+  /* Tab Navigation */
+  .tabs {
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    padding:20px;
+    border-bottom:1px solid var(--border);
+    flex-wrap:wrap;
+  }
+
+  .tab-btn {
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-family:'DM Sans', sans-serif;
+    font-size:14px;
+    font-weight:600;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    cursor:pointer;
+    padding:8px 16px;
+    border-bottom:2px solid transparent;
+    transition:all 0.3s ease;
+  }
+
+  .tab-btn:hover {
+    color:var(--accent);
+  }
+
+  .tab-btn.active {
+    color:var(--accent);
+    border-bottom-color:var(--accent);
+  }
+
+  /* Tab Content */
+  .tab-content {
+    display:none;
+  }
+
+  .tab-content.active {
+    display:block;
+  }
+
   main {
     max-width:800px;
     margin:0 auto;
     padding:30px 16px;
   }
 
+  /* Games Tab Styles */
   .game {
     background:var(--card);
     border:1px solid var(--border);
@@ -106,6 +151,193 @@
     color:var(--muted);
     padding:40px 0;
   }
+
+  /* Add Game Form Styles */
+  .form-section {
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:24px;
+    margin-bottom:20px;
+  }
+
+  .form-section h3 {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:20px;
+    margin:0 0 16px 0;
+    color:var(--accent);
+  }
+
+  .form-group {
+    margin-bottom:16px;
+  }
+
+  .form-group label {
+    display:block;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width:100%;
+    padding:12px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid var(--border);
+    border-radius:8px;
+    color:var(--text);
+    font-family:'DM Sans', sans-serif;
+    font-size:14px;
+    box-sizing:border-box;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline:none;
+    border-color:var(--accent);
+    background:rgba(0,229,255,0.05);
+  }
+
+  .form-group textarea {
+    resize:vertical;
+    min-height:100px;
+  }
+
+  .player-inputs {
+    background:rgba(255,255,255,0.02);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:16px;
+    margin-bottom:16px;
+  }
+
+  .player-input {
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:8px;
+    margin-bottom:8px;
+    align-items:flex-end;
+  }
+
+  .player-input:last-child {
+    margin-bottom:0;
+  }
+
+  .player-input input {
+    margin:0;
+  }
+
+  .btn-remove-player {
+    padding:10px 12px;
+    background:rgba(255,68,68,0.2);
+    border:1px solid var(--error);
+    border-radius:6px;
+    color:var(--error);
+    cursor:pointer;
+    font-weight:600;
+    font-size:12px;
+    transition:all 0.2s ease;
+  }
+
+  .btn-remove-player:hover {
+    background:rgba(255,68,68,0.3);
+  }
+
+  .btn-add-player {
+    padding:10px 16px;
+    background:rgba(0,229,255,0.2);
+    border:1px solid var(--accent);
+    border-radius:8px;
+    color:var(--accent);
+    cursor:pointer;
+    font-weight:600;
+    font-size:12px;
+    font-family:'DM Sans', sans-serif;
+    text-transform:uppercase;
+    transition:all 0.2s ease;
+    margin-bottom:16px;
+  }
+
+  .btn-add-player:hover {
+    background:rgba(0,229,255,0.3);
+  }
+
+  .button-group {
+    display:flex;
+    gap:12px;
+    margin-top:24px;
+  }
+
+  .btn-submit {
+    flex:1;
+    padding:14px;
+    background:var(--accent);
+    border:none;
+    border-radius:8px;
+    color:var(--bg);
+    font-weight:700;
+    font-family:'DM Sans', sans-serif;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:all 0.2s ease;
+  }
+
+  .btn-submit:hover {
+    opacity:0.9;
+  }
+
+  .btn-submit:disabled {
+    opacity:0.5;
+    cursor:not-allowed;
+  }
+
+  .btn-cancel {
+    flex:1;
+    padding:14px;
+    background:transparent;
+    border:1px solid var(--border);
+    border-radius:8px;
+    color:var(--text);
+    font-weight:700;
+    font-family:'DM Sans', sans-serif;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:all 0.2s ease;
+  }
+
+  .btn-cancel:hover {
+    border-color:var(--accent);
+    color:var(--accent);
+  }
+
+  .message {
+    padding:16px;
+    border-radius:8px;
+    margin-bottom:16px;
+    font-weight:600;
+  }
+
+  .message.success {
+    background:rgba(0,255,136,0.15);
+    border:1px solid var(--win);
+    color:var(--win);
+  }
+
+  .message.error {
+    background:rgba(255,68,68,0.15);
+    border:1px solid var(--error);
+    color:var(--error);
+  }
+
+  .message.loading {
+    background:rgba(0,229,255,0.15);
+    border:1px solid var(--accent);
+    color:var(--accent);
+  }
 </style>
 </head>
 
@@ -115,23 +347,241 @@
   <h1>RRL <span>Games</span></h1>
 </header>
 
-<main id="games">
-  <div class="empty">Loading games...</div>
-</main>
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('games')">Past Games</button>
+  <button class="tab-btn" onclick="switchTab('add')">Add Game</button>
+</div>
+
+<!-- Games Tab -->
+<div id="games" class="tab-content active">
+  <main id="gamesList">
+    <div class="empty">Loading games...</div>
+  </main>
+</div>
+
+<!-- Add Game Tab -->
+<div id="add" class="tab-content">
+  <main>
+    <div id="passwordPrompt" class="form-section" style="text-align:center;">
+      <h3 style="margin-bottom:20px;">Commissioner Access</h3>
+      <div class="form-group">
+        <label>Enter Password</label>
+        <input type="password" id="commishPassword" placeholder="Enter password" onkeypress="if(event.key==='Enter') verifyPassword()">
+      </div>
+      <button class="btn-submit" onclick="verifyPassword()">Unlock</button>
+      <div id="passwordError" style="color:#ff4444; margin-top:12px; display:none;">Incorrect password</div>
+    </div>
+    <div id="gameForm" style="display:none;">
+    <div id="message"></div>
+    
+    <div class="form-section">
+      <h3>Team 1</h3>
+      <div class="form-group">
+        <label>Team Name</label>
+        <input type="text" id="team1Name" placeholder="Enter team name">
+      </div>
+      <div class="player-inputs" id="team1Players">
+        <div class="player-input">
+          <input type="text" placeholder="Player 1" class="team1-player">
+          <input type="number" placeholder="Score" min="0" class="team1-score" style="width:80px;">
+        </div>
+      </div>
+      <button class="btn-add-player" onclick="addPlayerInput('team1')">+ Add Player</button>
+      <div class="form-group">
+        <label>Team Total</label>
+        <input type="number" id="team1Total" placeholder="Total score" min="0">
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>Team 2</h3>
+      <div class="form-group">
+        <label>Team Name</label>
+        <input type="text" id="team2Name" placeholder="Enter team name">
+      </div>
+      <div class="player-inputs" id="team2Players">
+        <div class="player-input">
+          <input type="text" placeholder="Player 1" class="team2-player">
+          <input type="number" placeholder="Score" min="0" class="team2-score" style="width:80px;">
+        </div>
+      </div>
+      <button class="btn-add-player" onclick="addPlayerInput('team2')">+ Add Player</button>
+      <div class="form-group">
+        <label>Team Total</label>
+        <input type="number" id="team2Total" placeholder="Total score" min="0">
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button class="btn-submit" id="submitBtn" onclick="submitGame()">Submit Game</button>
+      <button class="btn-cancel" onclick="resetForm()">Clear</button>
+    </div>
+    </div>
+  </main>
+</div>
 
 <script>
 const sb = supabase.createClient(
   'https://orreqxjbzqcjrzuazpco.supabase.co',
-  'YOUR_ANON_KEY'
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ycmVxeGpiendxY2pyenVhenpwY28iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcxNzU5OTc5MCwiZXhwIjoyMDMzMTc1NzkwfQ.sxP6GHwI1gA7k92R9vp4kzg7Ky9LmJOhnnH4Y5dYmQw'
 );
 
+// Tab Switching
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  
+  document.getElementById(tab).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Password Verification
+function verifyPassword() {
+  const password = document.getElementById('commishPassword').value;
+  const errorEl = document.getElementById('passwordError');
+  
+  if (password === 'RRL2026') {
+    document.getElementById('passwordPrompt').style.display = 'none';
+    document.getElementById('gameForm').style.display = 'block';
+    errorEl.style.display = 'none';
+    document.getElementById('commishPassword').value = '';
+  } else {
+    errorEl.style.display = 'block';
+    document.getElementById('commishPassword').value = '';
+  }
+}
+
+function addPlayerInput(team) {
+  const container = document.getElementById(team + 'Players');
+  const count = container.querySelectorAll('.player-input').length + 1;
+  
+  const div = document.createElement('div');
+  div.className = 'player-input';
+  div.innerHTML = `
+    <input type="text" placeholder="Player ${count}" class="${team}-player">
+    <div style="display:flex; gap:8px; align-items:flex-end;">
+      <input type="number" placeholder="Score" min="0" class="${team}-score" style="width:80px;">
+      <button class="btn-remove-player" onclick="this.parentElement.parentElement.remove()">Remove</button>
+    </div>
+  `;
+  
+  container.appendChild(div);
+}
+
+// Format game data
+function formatGameData() {
+  const team1Name = document.getElementById('team1Name').value.trim();
+  const team2Name = document.getElementById('team2Name').value.trim();
+  
+  if (!team1Name || !team2Name) {
+    showMessage('Please enter both team names', 'error');
+    return null;
+  }
+
+  const team1Players = Array.from(document.querySelectorAll('.team1-player'))
+    .map((inp, i) => {
+      const name = inp.value.trim();
+      const score = document.querySelectorAll('.team1-score')[i]?.value.trim();
+      return name ? `${name}${score ? ' ' + score : ''}` : null;
+    })
+    .filter(Boolean);
+
+  const team2Players = Array.from(document.querySelectorAll('.team2-player'))
+    .map((inp, i) => {
+      const name = inp.value.trim();
+      const score = document.querySelectorAll('.team2-score')[i]?.value.trim();
+      return name ? `${name}${score ? ' ' + score : ''}` : null;
+    })
+    .filter(Boolean);
+
+  const team1Total = document.getElementById('team1Total').value.trim();
+  const team2Total = document.getElementById('team2Total').value.trim();
+
+  if (!team1Players.length || !team2Players.length || !team1Total || !team2Total) {
+    showMessage('Please fill in all players and team totals', 'error');
+    return null;
+  }
+
+  // Format: Team Name\nPlayer Score\n...\nTotal: X 🆚 Team Name\nPlayer Score\n...\nTotal: X
+  const description = `${team1Name}
+${team1Players.join('\n')}
+Total: ${team1Total} 🆚 ${team2Name}
+${team2Players.join('\n')}
+Total: ${team2Total}`;
+
+  return description;
+}
+
+// Submit Game
+async function submitGame() {
+  const btn = document.getElementById('submitBtn');
+  const gameData = formatGameData();
+  
+  if (!gameData) return;
+
+  btn.disabled = true;
+  showMessage('Submitting game...', 'loading');
+
+  const { error } = await sb
+    .from('transactions')
+    .insert([
+      {
+        type: 'game',
+        description: gameData,
+        created_at: new Date().toISOString()
+      }
+    ]);
+
+  btn.disabled = false;
+
+  if (error) {
+    showMessage('Error submitting game: ' + error.message, 'error');
+    return;
+  }
+
+  showMessage('Game submitted successfully!', 'success');
+  resetForm();
+  
+  // Reload games after 1 second
+  setTimeout(() => {
+    loadGames();
+    switchTab('games');
+  }, 1000);
+}
+
+// Reset Form
+function resetForm() {
+  document.getElementById('team1Name').value = '';
+  document.getElementById('team1Total').value = '';
+  document.getElementById('team2Name').value = '';
+  document.getElementById('team2Total').value = '';
+  
+  document.querySelectorAll('.team1-player, .team1-score').forEach(el => el.value = '');
+  document.querySelectorAll('.team2-player, .team2-score').forEach(el => el.value = '');
+  
+  document.querySelectorAll('.team1-players .player-input:not(:first-child), .team2-players .player-input:not(:first-child)').forEach(el => el.remove());
+  
+  showMessage('');
+}
+
+// Show Message
+function showMessage(msg, type = '') {
+  const el = document.getElementById('message');
+  if (!msg) {
+    el.innerHTML = '';
+    return;
+  }
+  el.className = 'message ' + type;
+  el.innerText = msg;
+}
+
+// Parse and Render Games
 function parseGame(text) {
-  // splits into parts based on 🆚
   const parts = text.split("🆚");
   if (parts.length < 2) return null;
 
-  const left = parts[0].split("—").join("").trim();
-  const right = parts[1].split("—").join("").trim();
+  const left = parts[0].trim();
+  const right = parts[1].trim();
 
   return { left, right };
 }
@@ -161,7 +611,7 @@ function renderTeam(block) {
 }
 
 async function loadGames() {
-  const el = document.getElementById("games");
+  const el = document.getElementById("gamesList");
 
   const { data, error } = await sb
     .from("transactions")
