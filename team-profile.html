@@ -22,8 +22,6 @@
     --border:#2a2d4a;
     --accent:#7c3aed;
     --accent-light:#a78bfa;
-    --success:#10b981;
-    --danger:#ef4444;
     --warning:#f59e0b;
     --text:#f0f1f5;
     --text-dim:#9ca3af;
@@ -31,6 +29,7 @@
 
 body{
     font-family:'Space Grotesk',sans-serif;
+
     background:
         linear-gradient(
             135deg,
@@ -62,14 +61,14 @@ header{
 .team-name{
     font-family:'Rubik Mono One',monospace;
 
-    font-size:3.2rem;
+    font-size:3rem;
 
     background:
         linear-gradient(
             135deg,
-            var(--accent-light) 0%,
-            #ec4899 50%,
-            var(--accent) 100%
+            var(--accent-light),
+            #ec4899,
+            var(--accent)
         );
 
     -webkit-background-clip:text;
@@ -83,14 +82,14 @@ header{
 .team-record{
     color:var(--warning);
 
-    font-size:1.1rem;
+    font-size:1rem;
 
     font-weight:700;
 
     letter-spacing:1px;
 }
 
-/* INFO GRID */
+/* INFO */
 
 .info-grid{
     display:grid;
@@ -98,7 +97,7 @@ header{
     grid-template-columns:
         repeat(auto-fit,minmax(220px,1fr));
 
-    gap:1.5rem;
+    gap:1rem;
 
     margin-bottom:3rem;
 }
@@ -114,7 +113,7 @@ header{
 
     text-align:center;
 
-    transition:0.25s;
+    transition:.25s;
 }
 
 .info-card:hover{
@@ -131,9 +130,9 @@ header{
 
     font-size:.75rem;
 
-    letter-spacing:2px;
-
     text-transform:uppercase;
+
+    letter-spacing:2px;
 
     margin-bottom:1rem;
 
@@ -143,7 +142,7 @@ header{
 .info-value{
     font-family:'Rubik Mono One',monospace;
 
-    font-size:2.3rem;
+    font-size:2.2rem;
 
     color:var(--accent-light);
 }
@@ -184,11 +183,11 @@ header{
 
     text-align:center;
 
-    transition:.25s;
-
     text-decoration:none;
 
     color:inherit;
+
+    transition:.25s;
 
     display:block;
 }
@@ -359,9 +358,9 @@ Loading...
 <div class="roster-grid" id="rosterGrid"></div>
 
 <div
-    class="empty-state"
-    id="emptyRoster"
-    style="display:none;"
+class="empty-state"
+id="emptyRoster"
+style="display:none;"
 >
 No roster data available
 </div>
@@ -429,7 +428,7 @@ async function loadStandings(){
         );
 
     const rows =
-        doc.querySelectorAll("tbody tr");
+        doc.querySelectorAll("tr");
 
     let found = null;
 
@@ -438,25 +437,34 @@ async function loadStandings(){
         const cells =
             row.querySelectorAll("td");
 
-        if(cells.length < 5) return;
+        if(cells.length < 2) return;
 
-        const team =
-            cells[1]?.innerText?.trim() || "";
+        const possibleTeam =
+            Array.from(cells)
+                .map(c =>
+                    c.innerText.trim()
+                )
+                .find(text =>
+                    normalize(text) ===
+                    normalize(teamName)
+                );
 
-        if(
-            normalize(team) ===
-            normalize(teamName)
-        ){
+        if(possibleTeam){
+
+            const numbers =
+                Array.from(cells)
+                    .map(c =>
+                        parseInt(c.innerText)
+                    )
+                    .filter(n =>
+                        !isNaN(n)
+                    );
 
             const wins =
-                parseInt(
-                    cells[2]?.innerText
-                ) || 0;
+                numbers[0] || 0;
 
             const losses =
-                parseInt(
-                    cells[3]?.innerText
-                ) || 0;
+                numbers[1] || 0;
 
             const pct =
                 wins + losses === 0
@@ -467,7 +475,7 @@ async function loadStandings(){
                   ).toFixed(3);
 
             found = {
-                team,
+                team:possibleTeam,
                 wins,
                 losses,
                 pct
@@ -528,6 +536,7 @@ async function loadRoster(){
                     el.innerText.trim();
 
                 if(name){
+
                     players.push(name);
                 }
             });
