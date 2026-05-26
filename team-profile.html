@@ -1,401 +1,634 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RRL Team Profile</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Rubik+Mono+One&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        :root {
-            --bg: #0a0e27;
-            --surface: #141829;
-            --border: #2a2d4a;
-            --accent: #7c3aed;
-            --accent-light: #a78bfa;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --text: #f0f1f5;
-            --text-dim: #9ca3af;
-        }
+<title>RRL Team Profile</title>
 
-        body {
-            font-family: 'Space Grotesk', sans-serif;
-            background: linear-gradient(135deg, var(--bg) 0%, #1a0d1a 100%);
-            color: var(--text);
-            padding: 2rem 1rem;
-            min-height: 100vh;
-            background-attachment: fixed;
-        }
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Rubik+Mono+One&display=swap" rel="stylesheet">
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+<style>
 
-        header {
-            text-align: center;
-            margin-bottom: 3rem;
-            animation: fadeIn 0.8s ease-out;
-        }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
 
-        .team-name {
-            font-family: 'Rubik Mono One', monospace;
-            font-size: 3.5rem;
-            font-weight: 700;
-            letter-spacing: -1px;
-            background: linear-gradient(135deg, var(--accent-light) 0%, #ec4899 50%, var(--accent) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-        }
+:root{
+    --bg:#0a0e27;
+    --surface:#141829;
+    --border:#2a2d4a;
+    --accent:#7c3aed;
+    --accent-light:#a78bfa;
+    --success:#10b981;
+    --danger:#ef4444;
+    --warning:#f59e0b;
+    --text:#f0f1f5;
+    --text-dim:#9ca3af;
+}
 
-        .team-record {
-            color: var(--warning);
-            font-size: 1.1rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
+body{
+    font-family:'Space Grotesk',sans-serif;
+    background:
+        linear-gradient(
+            135deg,
+            var(--bg) 0%,
+            #1a0d1a 100%
+        );
 
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 3rem;
-            animation: slideUp 0.8s ease-out 0.2s both;
-        }
+    color:var(--text);
 
-        .info-card {
-            background: var(--surface);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            padding: 2rem 1.5rem;
-            text-align: center;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            position: relative;
-            overflow: hidden;
-        }
+    padding:2rem 1rem;
 
-        .info-card:hover {
-            border-color: var(--accent);
-            transform: translateY(-8px);
-            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.2);
-        }
+    min-height:100vh;
 
-        .info-label {
-            color: var(--text-dim);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
+    background-attachment:fixed;
+}
 
-        .info-value {
-            font-family: 'Rubik Mono One', monospace;
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--accent-light);
-            text-shadow: 0 0 20px rgba(167, 139, 250, 0.3);
-        }
+.container{
+    max-width:1200px;
+    margin:auto;
+}
 
-        .section-title {
-            font-family: 'Rubik Mono One', monospace;
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 2rem;
-            margin-top: 2rem;
-            color: var(--accent-light);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+/* HEADER */
 
-        .roster-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 3rem;
-            animation: slideUp 0.8s ease-out 0.3s both;
-        }
+header{
+    text-align:center;
+    margin-bottom:3rem;
+}
 
-        .player-card {
-            background: var(--surface);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-            cursor: default;
-        }
+.team-name{
+    font-family:'Rubik Mono One',monospace;
 
-        .player-card:hover {
-            border-color: var(--accent);
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.2);
-        }
+    font-size:3.2rem;
 
-        .player-name {
-            color: var(--text);
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            font-size: 0.95rem;
-        }
+    background:
+        linear-gradient(
+            135deg,
+            var(--accent-light) 0%,
+            #ec4899 50%,
+            var(--accent) 100%
+        );
 
-        .player-position {
-            color: var(--warning);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
 
-        .empty-state {
-            background: var(--surface);
-            border: 2px dashed var(--border);
-            border-radius: 12px;
-            padding: 3rem;
-            text-align: center;
-            color: var(--text-dim);
-        }
+    margin-bottom:1rem;
 
-        .button-group {
-            display: flex;
-            gap: 1rem;
-            margin-top: 3rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-            animation: slideUp 0.8s ease-out 0.5s both;
-        }
+    text-transform:uppercase;
+}
 
-        .btn {
-            flex: 1;
-            min-width: 150px;
-            padding: 1rem 1.5rem;
-            border: 2px solid var(--border);
-            background: var(--surface);
-            color: var(--text);
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-family: 'Space Grotesk', sans-serif;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
+.team-record{
+    color:var(--warning);
 
-        .btn:hover {
-            border-color: var(--accent);
-            color: var(--accent-light);
-            transform: translateY(-3px);
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.2);
-        }
+    font-size:1.1rem;
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent), #ec4899);
-            border-color: var(--accent);
-            color: white;
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
-        }
+    font-weight:700;
 
-        .btn-primary:hover {
-            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
-        }
+    letter-spacing:1px;
+}
 
-        @media (max-width: 768px) {
-            .team-name {
-                font-size: 2.2rem;
-            }
+/* INFO GRID */
 
-            .info-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
+.info-grid{
+    display:grid;
 
-            .roster-grid {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            }
+    grid-template-columns:
+        repeat(auto-fit,minmax(220px,1fr));
 
-            .button-group {
-                flex-direction: column;
-            }
+    gap:1.5rem;
 
-            .btn {
-                width: 100%;
-            }
-        }
+    margin-bottom:3rem;
+}
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
+.info-card{
+    background:var(--surface);
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
+    border:2px solid var(--border);
+
+    border-radius:14px;
+
+    padding:2rem 1rem;
+
+    text-align:center;
+
+    transition:0.25s;
+}
+
+.info-card:hover{
+    border-color:var(--accent);
+
+    transform:translateY(-6px);
+
+    box-shadow:
+        0 8px 24px rgba(124,58,237,.2);
+}
+
+.info-label{
+    color:var(--text-dim);
+
+    font-size:.75rem;
+
+    letter-spacing:2px;
+
+    text-transform:uppercase;
+
+    margin-bottom:1rem;
+
+    font-weight:700;
+}
+
+.info-value{
+    font-family:'Rubik Mono One',monospace;
+
+    font-size:2.3rem;
+
+    color:var(--accent-light);
+}
+
+/* SECTION */
+
+.section-title{
+    font-family:'Rubik Mono One',monospace;
+
+    font-size:1.4rem;
+
+    margin-bottom:2rem;
+
+    color:var(--accent-light);
+
+    text-transform:uppercase;
+}
+
+/* ROSTER */
+
+.roster-grid{
+    display:grid;
+
+    grid-template-columns:
+        repeat(auto-fill,minmax(180px,1fr));
+
+    gap:1rem;
+}
+
+.player-card{
+    background:var(--surface);
+
+    border:2px solid var(--border);
+
+    border-radius:12px;
+
+    padding:1.3rem;
+
+    text-align:center;
+
+    transition:.25s;
+
+    text-decoration:none;
+
+    color:inherit;
+
+    display:block;
+}
+
+.player-card:hover{
+    border-color:var(--accent);
+
+    transform:translateY(-5px);
+
+    box-shadow:
+        0 8px 20px rgba(124,58,237,.2);
+}
+
+.player-card:hover .player-name{
+    color:var(--accent-light);
+}
+
+.player-name{
+    font-weight:700;
+
+    margin-bottom:.45rem;
+
+    transition:.2s;
+}
+
+.player-position{
+    color:var(--warning);
+
+    font-size:.72rem;
+
+    text-transform:uppercase;
+
+    letter-spacing:1px;
+}
+
+/* EMPTY */
+
+.empty-state{
+    background:var(--surface);
+
+    border:2px dashed var(--border);
+
+    border-radius:12px;
+
+    padding:3rem;
+
+    text-align:center;
+
+    color:var(--text-dim);
+}
+
+/* BUTTONS */
+
+.button-group{
+    display:flex;
+
+    gap:1rem;
+
+    flex-wrap:wrap;
+
+    margin-top:3rem;
+}
+
+.btn{
+    flex:1;
+
+    min-width:160px;
+
+    padding:1rem 1.5rem;
+
+    border-radius:10px;
+
+    border:2px solid var(--border);
+
+    background:var(--surface);
+
+    color:var(--text);
+
+    text-decoration:none;
+
+    text-align:center;
+
+    font-weight:700;
+
+    transition:.25s;
+}
+
+.btn:hover{
+    border-color:var(--accent);
+
+    color:var(--accent-light);
+
+    transform:translateY(-3px);
+}
+
+.btn-primary{
+    background:
+        linear-gradient(
+            135deg,
+            var(--accent),
+            #ec4899
+        );
+
+    border-color:var(--accent);
+
+    color:white;
+}
+
+/* MOBILE */
+
+@media(max-width:768px){
+
+    .team-name{
+        font-size:2rem;
+    }
+
+    .roster-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .button-group{
+        flex-direction:column;
+    }
+
+    .btn{
+        width:100%;
+    }
+}
+
+</style>
 </head>
+
 <body>
-    <div class="container">
-        <header>
-            <h1 class="team-name" id="teamName">Loading...</h1>
-            <p class="team-record" id="teamRecord"></p>
-        </header>
 
-        <div class="info-grid">
-            <div class="info-card">
-                <div class="info-label">Wins</div>
-                <div class="info-value" id="wins">-</div>
-            </div>
-            <div class="info-card">
-                <div class="info-label">Losses</div>
-                <div class="info-value" id="losses">-</div>
-            </div>
-            <div class="info-card">
-                <div class="info-label">Win %</div>
-                <div class="info-value" id="winPct">-</div>
-            </div>
-        </div>
+<div class="container">
 
-        <div>
-            <h2 class="section-title">Roster</h2>
-            <div class="roster-grid" id="rosterGrid">
-                <!-- Populated by JS -->
-            </div>
-            <div class="empty-state" id="emptyRoster" style="display: none;">
-                <p>No roster data available</p>
-            </div>
-        </div>
+<header>
 
-        <div class="button-group">
-            <a href="standings.html" class="btn btn-primary">← Back to Standings</a>
-            <a href="roster.html" class="btn">View Full Roster</a>
-            <a href="index.html" class="btn">← Back to Home</a>
-        </div>
-    </div>
+<h1 class="team-name" id="teamName">
+Loading...
+</h1>
 
-    <script>
-        const STANDINGS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS7OR3Jlik3PnCF6unj_M78_LjWaEkd6gfO85-BPeEP3uW-9JO0oWfRVxeTloj-oU6Aq38YGlCEbiAD/pub?gid=924636686&single=true&output=csv";
-        const ROSTER_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS7OR3Jlik3PnCF6unj_M78_LjWaEkd6gfO85-BPeEP3uW-9JO0oWfRVxeTloj-oU6Aq38YGlCEbiAD/pub?gid=1632169961&single=true&output=csv";
+<p class="team-record" id="teamRecord"></p>
 
-        const params = new URLSearchParams(window.location.search);
-        const team = (params.get("team") || "").trim();
+</header>
 
-        function parseCSV(text) {
-            return text.trim().split("\n").map(r => r.split(",").map(c => c.trim()));
+<div class="info-grid">
+
+<div class="info-card">
+<div class="info-label">Wins</div>
+<div class="info-value" id="wins">-</div>
+</div>
+
+<div class="info-card">
+<div class="info-label">Losses</div>
+<div class="info-value" id="losses">-</div>
+</div>
+
+<div class="info-card">
+<div class="info-label">Win %</div>
+<div class="info-value" id="winPct">-</div>
+</div>
+
+</div>
+
+<h2 class="section-title">Roster</h2>
+
+<div class="roster-grid" id="rosterGrid"></div>
+
+<div
+    class="empty-state"
+    id="emptyRoster"
+    style="display:none;"
+>
+No roster data available
+</div>
+
+<div class="button-group">
+
+<a href="standings.html" class="btn btn-primary">
+← Back To Standings
+</a>
+
+<a href="roster.html" class="btn">
+View Full Roster
+</a>
+
+<a href="index.html" class="btn">
+← Back Home
+</a>
+
+</div>
+
+</div>
+
+<script>
+
+const params =
+    new URLSearchParams(window.location.search);
+
+const teamName =
+    decodeURIComponent(
+        params.get("team") || ""
+    ).trim();
+
+/* =========================
+   NORMALIZE
+========================= */
+
+function normalize(str){
+
+    return str
+        .toLowerCase()
+        .replace(/[^\w\s]/g,"")
+        .replace(/\s+/g,"")
+        .trim();
+}
+
+/* =========================
+   LOAD STANDINGS
+========================= */
+
+async function loadStandings(){
+
+    const res =
+        await fetch("standings.html");
+
+    const html =
+        await res.text();
+
+    const parser =
+        new DOMParser();
+
+    const doc =
+        parser.parseFromString(
+            html,
+            "text/html"
+        );
+
+    const rows =
+        doc.querySelectorAll("tbody tr");
+
+    let found = null;
+
+    rows.forEach(row => {
+
+        const cells =
+            row.querySelectorAll("td");
+
+        if(cells.length < 5) return;
+
+        const team =
+            cells[1]?.innerText?.trim() || "";
+
+        if(
+            normalize(team) ===
+            normalize(teamName)
+        ){
+
+            const wins =
+                parseInt(
+                    cells[2]?.innerText
+                ) || 0;
+
+            const losses =
+                parseInt(
+                    cells[3]?.innerText
+                ) || 0;
+
+            const pct =
+                wins + losses === 0
+                ? "0.000"
+                : (
+                    wins /
+                    (wins + losses)
+                  ).toFixed(3);
+
+            found = {
+                team,
+                wins,
+                losses,
+                pct
+            };
         }
+    });
 
-        async function loadTeamProfile() {
-            if (!team) {
-                document.getElementById("teamName").innerText = "Unknown Team";
-                return;
-            }
+    return found;
+}
 
-            try {
-                // Load standings data
-                const standingsRes = await fetch(STANDINGS_SHEET_URL);
-                const standingsText = await standingsRes.text();
-                const standingsRows = parseCSV(standingsText);
+/* =========================
+   LOAD ROSTER
+========================= */
 
-                let teamData = null;
-                for (let i = 1; i < standingsRows.length; i++) {
-                    const row = standingsRows[i];
-                    if (row[1] && row[1].toLowerCase() === team.toLowerCase()) {
-                        teamData = {
-                            rank: row[0],
-                            team: row[1],
-                            gp: row[2],
-                            w: row[3],
-                            l: row[4],
-                            win_pct: row[5]
-                        };
-                        break;
-                    }
+async function loadRoster(){
+
+    const res =
+        await fetch("roster.html");
+
+    const html =
+        await res.text();
+
+    const parser =
+        new DOMParser();
+
+    const doc =
+        parser.parseFromString(
+            html,
+            "text/html"
+        );
+
+    const teamCards =
+        doc.querySelectorAll(".team");
+
+    let players = [];
+
+    teamCards.forEach(card => {
+
+        const team =
+            card
+                .querySelector(".team-name")
+                ?.innerText
+                ?.trim() || "";
+
+        if(
+            normalize(team) ===
+            normalize(teamName)
+        ){
+
+            const playerEls =
+                card.querySelectorAll(
+                    ".username"
+                );
+
+            playerEls.forEach(el => {
+
+                const name =
+                    el.innerText.trim();
+
+                if(name){
+                    players.push(name);
                 }
-
-                if (!teamData) {
-                    document.getElementById("teamName").innerText = team + " (Not Found)";
-                    return;
-                }
-
-                // Display team data
-                document.getElementById("teamName").innerText = teamData.team;
-                document.getElementById("teamRecord").innerText = `${teamData.w}W - ${teamData.l}L`;
-                document.getElementById("wins").innerText = teamData.w;
-                document.getElementById("losses").innerText = teamData.l;
-                document.getElementById("winPct").innerText = teamData.win_pct;
-
-                // Load roster data
-                await loadRoster(team);
-            } catch (error) {
-                console.error("Error loading team profile:", error);
-                document.getElementById("teamName").innerText = "Error Loading Profile";
-            }
+            });
         }
+    });
 
-        async function loadRoster(teamName) {
-            try {
-                const rosterRes = await fetch(ROSTER_SHEET_URL);
-                const rosterText = await rosterRes.text();
-                const rosterRows = parseCSV(rosterText);
+    return players;
+}
 
-                let players = [];
-                for (let i = 1; i < rosterRows.length; i++) {
-                    const row = rosterRows[i];
-                    if (row[2] && row[2].toLowerCase() === teamName.toLowerCase()) {
-                        players.push({
-                            username: row[0],
-                            position: row[3] || "N/A"
-                        });
-                    }
-                }
+/* =========================
+   MAIN
+========================= */
 
-                const rosterGrid = document.getElementById("rosterGrid");
-                const emptyRoster = document.getElementById("emptyRoster");
+async function init(){
 
-                if (players.length === 0) {
-                    rosterGrid.style.display = "none";
-                    emptyRoster.style.display = "block";
-                    return;
-                }
+    const standings =
+        await loadStandings();
 
-                rosterGrid.innerHTML = players.map(player => `
-                    <div class="player-card">
-                        <div class="player-name">${player.username}</div>
-                        <div class="player-position">${player.position}</div>
-                    </div>
-                `).join('');
-            } catch (error) {
-                console.error("Error loading roster:", error);
-                document.getElementById("emptyRoster").style.display = "block";
-                document.getElementById("rosterGrid").style.display = "none";
-            }
-        }
+    if(!standings){
 
-        loadTeamProfile();
-    </script>
+        document.getElementById(
+            "teamName"
+        ).innerText =
+            "Team Not Found";
+
+        return;
+    }
+
+    document.getElementById(
+        "teamName"
+    ).innerText =
+        standings.team;
+
+    document.getElementById(
+        "teamRecord"
+    ).innerText =
+        `${standings.wins}W - ${standings.losses}L`;
+
+    document.getElementById(
+        "wins"
+    ).innerText =
+        standings.wins;
+
+    document.getElementById(
+        "losses"
+    ).innerText =
+        standings.losses;
+
+    document.getElementById(
+        "winPct"
+    ).innerText =
+        standings.pct;
+
+    const players =
+        await loadRoster();
+
+    const rosterGrid =
+        document.getElementById(
+            "rosterGrid"
+        );
+
+    const emptyRoster =
+        document.getElementById(
+            "emptyRoster"
+        );
+
+    if(players.length === 0){
+
+        rosterGrid.style.display =
+            "none";
+
+        emptyRoster.style.display =
+            "block";
+
+        return;
+    }
+
+    rosterGrid.innerHTML =
+        players.map(player => `
+
+        <a
+            class="player-card"
+            href="profile.html?user=${encodeURIComponent(player)}"
+        >
+
+            <div class="player-name">
+                ${player}
+            </div>
+
+            <div class="player-position">
+                Player
+            </div>
+
+        </a>
+
+        `).join("");
+}
+
+init();
+
+</script>
+
 </body>
 </html>
