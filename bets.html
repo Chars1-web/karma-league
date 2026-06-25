@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Bets</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+body{background:#05060a;color:white;font-family:DM Sans;padding:20px;}
+h1{text-align:center;font-family:Bebas Neue;font-size:60px;}
+
+.card{
+background:#11141d;
+border:1px solid #1e2431;
+padding:15px;
+border-radius:12px;
+margin-bottom:15px;
+}
+
+input{
+background:#0b0d14;
+border:1px solid #333;
+color:white;
+padding:6px;
+margin:4px;
+border-radius:8px;
+}
+
+button{
+background:#e8ff3c;
+border:none;
+padding:8px;
+font-weight:800;
+cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>BETS</h1>
+
+<div class="card">
+<input value="Sharks"> vs <input value="Empire"><br>
+<input value="@user1"> <input value="@user2"><br>
+<input value="92"> <input value="88"><br>
+Over/Under: <input value="48.5"><br>
+<button onclick="addBet('Sharks vs Empire')">Add Bet</button>
+</div>
+
+<div class="card">
+<input value="Legion"> vs <input value="Hounds"><br>
+<input value="@a"> <input value="@b"><br>
+<input value="90"> <input value="84"><br>
+Over/Under: <input value="52.5"><br>
+<button onclick="addBet('Legion vs Hounds')">Add Bet</button>
+</div>
+
+<script>
+let slip = JSON.parse(localStorage.getItem("slip")) || [];
+
+function addBet(match){
+slip.push(match);
+localStorage.setItem("slip",JSON.stringify(slip));
+alert("Added to bet slip");
+}
+</script>
+
+</body>
+</html>
