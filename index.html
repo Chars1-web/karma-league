@@ -20,16 +20,11 @@
 --muted:#7f8598;
 }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
+*{margin:0;padding:0;box-sizing:border-box;}
 
 body{
 font-family:'DM Sans',sans-serif;
-background:
-radial-gradient(circle at top center, rgba(232,255,60,.05), transparent 28%),
+background:radial-gradient(circle at top center, rgba(232,255,60,.05), transparent 28%),
 linear-gradient(to bottom,var(--bg),var(--bg2));
 color:var(--text);
 min-height:100vh;
@@ -37,7 +32,6 @@ display:flex;
 flex-direction:column;
 align-items:center;
 padding:70px 18px 24px;
-overflow-x:hidden;
 }
 
 body:before{
@@ -51,8 +45,7 @@ background-size:34px 34px;
 pointer-events:none;
 }
 
-/* Ticker */
-
+/* ticker */
 .ticker{
 position:fixed;
 top:0;
@@ -64,7 +57,6 @@ align-items:center;
 overflow:hidden;
 background:rgba(17,20,29,.95);
 border-bottom:1px solid var(--border);
-z-index:9999;
 }
 
 .ticker-track{
@@ -72,7 +64,7 @@ display:flex;
 gap:60px;
 white-space:nowrap;
 padding-left:100%;
-animation:scrollTicker 22s linear infinite;
+animation:scroll 20s linear infinite;
 }
 
 .ticker-track span{
@@ -83,12 +75,10 @@ text-transform:uppercase;
 color:var(--accent);
 }
 
-@keyframes scrollTicker{
+@keyframes scroll{
 0%{transform:translateX(0);}
 100%{transform:translateX(-100%);}
 }
-
-/* Hero */
 
 .hero{
 text-align:center;
@@ -97,33 +87,27 @@ margin-bottom:32px;
 
 .hero-top{
 font-size:11px;
-font-weight:800;
 letter-spacing:.35em;
 text-transform:uppercase;
 color:var(--gold);
-margin-bottom:12px;
+font-weight:800;
 }
 
-.hero h1{
+h1{
 font-family:'Bebas Neue',sans-serif;
-font-size:clamp(72px,13vw,110px);
+font-size:clamp(70px,12vw,110px);
 line-height:.95;
-letter-spacing:.04em;
 }
 
-.hero h1 span{
-color:var(--accent);
-}
+h1 span{color:var(--accent);}
 
 .hero-sub{
-margin-top:10px;
 font-size:12px;
-letter-spacing:.22em;
+letter-spacing:.2em;
 text-transform:uppercase;
 color:var(--muted);
+margin-top:10px;
 }
-
-/* Content */
 
 .nav-wrap{
 width:100%;
@@ -134,101 +118,41 @@ gap:16px;
 }
 
 .portal-box{
-background:linear-gradient(
-to bottom,
-rgba(255,255,255,.015),
-rgba(255,255,255,.005)
-);
+background:linear-gradient(to bottom, rgba(255,255,255,.015), rgba(255,255,255,.005));
 border:1px solid var(--border);
-border-radius:20px;
-padding:28px 24px;
+border-radius:18px;
+padding:26px 22px;
 display:flex;
 justify-content:space-between;
-align-items:center;
 text-decoration:none;
 color:var(--text);
-position:relative;
-overflow:hidden;
-transition:.22s;
-box-shadow:0 12px 30px rgba(0,0,0,.22);
-}
-
-.portal-box:before{
-content:'';
-position:absolute;
-left:0;
-top:0;
-bottom:0;
-width:4px;
-background:var(--accent);
-transform:scaleY(0);
-transition:.22s;
+transition:.2s;
 }
 
 .portal-box:hover{
 transform:translateY(-3px);
 border-color:rgba(232,255,60,.35);
-box-shadow:0 16px 36px rgba(0,0,0,.3);
-}
-
-.portal-box:hover:before{
-transform:scaleY(1);
-}
-
-.portal-left{
-display:flex;
-flex-direction:column;
 }
 
 .portal-title{
 font-family:'Bebas Neue',sans-serif;
 font-size:34px;
-line-height:1;
-letter-spacing:.04em;
 }
 
 .portal-sub{
-margin-top:4px;
 font-size:11px;
-letter-spacing:.14em;
-text-transform:uppercase;
 color:var(--muted);
+text-transform:uppercase;
+letter-spacing:.14em;
 }
 
-.portal-arrow{
-font-size:24px;
-font-weight:800;
-color:var(--accent);
-}
-
-/* Featured Card */
-
-.featured{
-margin-bottom:8px;
-border-color:rgba(232,255,60,.2);
-}
-
-.featured .portal-title{
-font-size:40px;
-}
-
-.balance{
-color:var(--gold);
-}
-
-/* Footer */
-
-.spacer{
-flex:1;
-}
+.portal-arrow{color:var(--accent);font-size:22px;}
 
 footer{
-margin-top:28px;
+margin-top:30px;
 font-size:12px;
 letter-spacing:.15em;
-text-transform:uppercase;
 color:var(--muted);
-text-align:center;
 }
 </style>
 </head>
@@ -236,83 +160,57 @@ text-align:center;
 <body>
 
 <div class="ticker">
-    <div class="ticker-track">
-        <span>💰 Matchday 6 Betting Lines Are Live</span>
-        <span>🔥 Legion +145 vs Empire -175</span>
-        <span>📈 Most Bet Team: Sharks</span>
-        <span>🎯 New Player Props Available</span>
-        <span>🏆 Weekly Betting Leaderboard Updated</span>
-        <span>💸 RAX Parlays Now Live</span>
-    </div>
+<div class="ticker-track">
+<span>🔥 Matchday Bets Now Live</span>
+<span>📊 Player Props Updated Daily</span>
+<span>🏆 RKL Leaderboards Active</span>
+<span>💰 Build Your Parlays</span>
+</div>
 </div>
 
 <div class="hero">
-    <div class="hero-top">Official RKL Sportsbook</div>
-
-    <h1>RKL <span>Sportsbook</span></h1>
-
-    <div class="hero-sub">
-        Bet RAX • Player Props • Match Odds • Parlays
-    </div>
+<div class="hero-top">Official RKL Sportsbook</div>
+<h1>RKL <span>Sportsbook</span></h1>
+<div class="hero-sub">Bet Matchups • Props • Parlays</div>
 </div>
 
 <div class="nav-wrap">
 
-    <a href="#" class="portal-box featured">
-        <div class="portal-left">
-            <div class="portal-title balance">12,450 RAX</div>
-            <div class="portal-sub">Available Balance</div>
-        </div>
-        <div class="portal-arrow">💰</div>
-    </a>
+<a href="bets.html" class="portal-box">
+<div>
+<div class="portal-title">Bets</div>
+<div class="portal-sub">Matchups & Player Props</div>
+</div>
+<div class="portal-arrow">→</div>
+</a>
 
-    <a href="sportsbook.html" class="portal-box">
-        <div class="portal-left">
-            <div class="portal-title">Sportsbook</div>
-            <div class="portal-sub">Match Odds & Betting Lines</div>
-        </div>
-        <div class="portal-arrow">→</div>
-    </a>
+<a href="props.html" class="portal-box">
+<div>
+<div class="portal-title">Player Props</div>
+<div class="portal-sub">Over / Under Lines</div>
+</div>
+<div class="portal-arrow">→</div>
+</a>
 
-    <a href="props.html" class="portal-box">
-        <div class="portal-left">
-            <div class="portal-title">Player Props</div>
-            <div class="portal-sub">Ratings, Karma & Match Props</div>
-        </div>
-        <div class="portal-arrow">→</div>
-    </a>
+<a href="parlays.html" class="portal-box">
+<div>
+<div class="portal-title">Parlays</div>
+<div class="portal-sub">Multi-Bet Builder</div>
+</div>
+<div class="portal-arrow">→</div>
+</a>
 
-    <a href="parlays.html" class="portal-box">
-        <div class="portal-left">
-            <div class="portal-title">Parlays</div>
-            <div class="portal-sub">Build Multi-Bet Tickets</div>
-        </div>
-        <div class="portal-arrow">→</div>
-    </a>
-
-    <a href="leaderboard.html" class="portal-box">
-        <div class="portal-left">
-            <div class="portal-title">Leaderboard</div>
-            <div class="portal-sub">Top RAX Earners</div>
-        </div>
-        <div class="portal-arrow">→</div>
-    </a>
-
-    <a href="history.html" class="portal-box">
-        <div class="portal-left">
-            <div class="portal-title">Bet History</div>
-            <div class="portal-sub">Past Bets & Results</div>
-        </div>
-        <div class="portal-arrow">→</div>
-    </a>
+<a href="leaderboard.html" class="portal-box">
+<div>
+<div class="portal-title">Leaderboard</div>
+<div class="portal-sub">Top RAX Players</div>
+</div>
+<div class="portal-arrow">→</div>
+</a>
 
 </div>
 
-<div class="spacer"></div>
-
-<footer>
-RKL Sportsbook • Powered By RAX • Made By @chars1
-</footer>
+<footer>RKL Sportsbook • Made by @chars1</footer>
 
 </body>
 </html>
