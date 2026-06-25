@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin</title>
+</head>
+<body>
+
+<h1>Pending Deposits</h1>
+<div id="list"></div>
+
+<script>
+let deposits = JSON.parse(localStorage.getItem("deposits")) || [];
+
+function render(){
+document.getElementById("list").innerHTML =
+deposits.map((d,i)=>`
+<div>
+${d.user} - ${d.amount} RAX - ${d.status}
+<button onclick="approve(${i})">Approve</button>
+</div>
+`).join("");
+}
+
+function approve(i){
+deposits[i].status="approved";
+
+let user = JSON.parse(localStorage.getItem("rklUser"));
+if(user && user.username===deposits[i].user){
+user.wallet += deposits[i].amount;
+localStorage.setItem("rklUser",JSON.stringify(user));
+}
+
+localStorage.setItem("deposits",JSON.stringify(deposits));
+render();
+}
+
+render();
+</script>
+
+</body>
+</html>
