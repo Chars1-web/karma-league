@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Real Rating League</title>
+<title>RKL Sportsbook</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
 
@@ -19,7 +20,11 @@
 --muted:#7f8598;
 }
 
-*{box-sizing:border-box;margin:0;padding:0;}
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
 
 body{
 font-family:'DM Sans',sans-serif;
@@ -31,7 +36,7 @@ min-height:100vh;
 display:flex;
 flex-direction:column;
 align-items:center;
-padding:32px 18px 24px;
+padding:70px 18px 24px;
 overflow-x:hidden;
 }
 
@@ -46,11 +51,48 @@ background-size:34px 34px;
 pointer-events:none;
 }
 
+/* Ticker */
+
+.ticker{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:34px;
+display:flex;
+align-items:center;
+overflow:hidden;
+background:rgba(17,20,29,.95);
+border-bottom:1px solid var(--border);
+z-index:9999;
+}
+
+.ticker-track{
+display:flex;
+gap:60px;
+white-space:nowrap;
+padding-left:100%;
+animation:scrollTicker 22s linear infinite;
+}
+
+.ticker-track span{
+font-size:11px;
+font-weight:700;
+letter-spacing:.16em;
+text-transform:uppercase;
+color:var(--accent);
+}
+
+@keyframes scrollTicker{
+0%{transform:translateX(0);}
+100%{transform:translateX(-100%);}
+}
+
+/* Hero */
+
 .hero{
-position:relative;
-z-index:2;
 text-align:center;
-margin-bottom:38px;
+margin-bottom:32px;
 }
 
 .hero-top{
@@ -62,91 +104,61 @@ color:var(--gold);
 margin-bottom:12px;
 }
 
-h1{
+.hero h1{
 font-family:'Bebas Neue',sans-serif;
-font-size:clamp(64px,12vw,100px);
-letter-spacing:.04em;
+font-size:clamp(72px,13vw,110px);
 line-height:.95;
+letter-spacing:.04em;
 }
 
-h1 span{color:var(--accent);}
+.hero h1 span{
+color:var(--accent);
+}
 
 .hero-sub{
 margin-top:10px;
 font-size:12px;
-letter-spacing:.25em;
+letter-spacing:.22em;
 text-transform:uppercase;
 color:var(--muted);
 }
-.ticker{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-background:rgba(17,20,29,.95);
-border-bottom:1px solid var(--border);
-overflow:hidden;
-z-index:9999;
-height:34px;
-display:flex;
-align-items:center;
-}
 
-.ticker-track{
-display:flex;
-gap:60px;
-white-space:nowrap;
-animation:scrollTicker 18s linear infinite;
-padding-left:100%;
-}
+/* Content */
 
-.ticker-track span{
-font-size:11px;
-letter-spacing:.18em;
-text-transform:uppercase;
-color:var(--accent);
-font-weight:700;
-}
-
-@keyframes scrollTicker{
-0%{transform:translateX(0);}
-100%{transform:translateX(-100%);}
-}
-
-/* pushes page down so ticker doesn't overlap content */
-body{
-padding-top:70px;
-}
 .nav-wrap{
-position:relative;
-z-index:2;
 width:100%;
-max-width:420px;
+max-width:430px;
 display:flex;
 flex-direction:column;
 gap:16px;
 }
 
 .portal-box{
-background:linear-gradient(to bottom, rgba(255,255,255,.015), rgba(255,255,255,.005));
+background:linear-gradient(
+to bottom,
+rgba(255,255,255,.015),
+rgba(255,255,255,.005)
+);
 border:1px solid var(--border);
 border-radius:20px;
 padding:28px 24px;
-text-decoration:none;
-color:var(--text);
 display:flex;
 justify-content:space-between;
 align-items:center;
-box-shadow:0 12px 30px rgba(0,0,0,.22);
-transition:.22s;
+text-decoration:none;
+color:var(--text);
 position:relative;
 overflow:hidden;
+transition:.22s;
+box-shadow:0 12px 30px rgba(0,0,0,.22);
 }
 
 .portal-box:before{
 content:'';
 position:absolute;
-left:0;top:0;bottom:0;
+left:0;
+top:0;
+bottom:0;
 width:4px;
 background:var(--accent);
 transform:scaleY(0);
@@ -166,124 +178,141 @@ transform:scaleY(1);
 .portal-left{
 display:flex;
 flex-direction:column;
-align-items:flex-start;
 }
 
 .portal-title{
 font-family:'Bebas Neue',sans-serif;
 font-size:34px;
-letter-spacing:.04em;
 line-height:1;
+letter-spacing:.04em;
 }
 
 .portal-sub{
+margin-top:4px;
 font-size:11px;
 letter-spacing:.14em;
 text-transform:uppercase;
 color:var(--muted);
-margin-top:4px;
 }
 
 .portal-arrow{
 font-size:24px;
-color:var(--accent);
 font-weight:800;
+color:var(--accent);
 }
+
+/* Featured Card */
+
+.featured{
+margin-bottom:8px;
+border-color:rgba(232,255,60,.2);
+}
+
+.featured .portal-title{
+font-size:40px;
+}
+
+.balance{
+color:var(--gold);
+}
+
+/* Footer */
 
 .spacer{
 flex:1;
 }
 
-.gm-btn{
-position:relative;
-z-index:2;
-margin-top:34px;
-display:inline-block;
-padding:12px 26px;
-background:var(--card);
-border:1px solid var(--border);
-border-radius:12px;
-text-decoration:none;
-color:var(--text);
+footer{
+margin-top:28px;
 font-size:12px;
-font-weight:700;
 letter-spacing:.15em;
 text-transform:uppercase;
-transition:.2s;
-}
-
-.gm-btn:hover{
-border-color:rgba(232,255,60,.35);
-color:var(--accent);
-}
-
-footer{
-position:relative;
-z-index:2;
-margin-top:18px;
-font-size:13px;
-letter-spacing:.12em;
-text-transform:uppercase;
 color:var(--muted);
+text-align:center;
 }
 </style>
 </head>
 
 <body>
+
 <div class="ticker">
-  <div class="ticker-track">
-     <span>Today's News: @diehard a project all-star has been suspended for 5 games due to making someones lineup.  </span>
-    <span>🔥 Matchday 8 Starts 5/28 • Season 10 is LIVE •</span>
-    <span>🏆 New rankings drop Soon </span>
-    <span>📊 Player stats updated daily • Message @chars1 for suggestions/concerns •</span>
-  </div>
+    <div class="ticker-track">
+        <span>💰 Matchday 6 Betting Lines Are Live</span>
+        <span>🔥 Legion +145 vs Empire -175</span>
+        <span>📈 Most Bet Team: Sharks</span>
+        <span>🎯 New Player Props Available</span>
+        <span>🏆 Weekly Betting Leaderboard Updated</span>
+        <span>💸 RAX Parlays Now Live</span>
+    </div>
 </div>
 
 <div class="hero">
-<div class="hero-top">Offical RRL Home Page</div>
-<h1>Real <span>Rating</span> League</h1>
-<div class="hero-sub">Real Rating League Portal</div>
+    <div class="hero-top">Official RKL Sportsbook</div>
+
+    <h1>RKL <span>Sportsbook</span></h1>
+
+    <div class="hero-sub">
+        Bet RAX • Player Props • Match Odds • Parlays
+    </div>
 </div>
 
 <div class="nav-wrap">
 
+    <a href="#" class="portal-box featured">
+        <div class="portal-left">
+            <div class="portal-title balance">12,450 RAX</div>
+            <div class="portal-sub">Available Balance</div>
+        </div>
+        <div class="portal-arrow">💰</div>
+    </a>
 
+    <a href="sportsbook.html" class="portal-box">
+        <div class="portal-left">
+            <div class="portal-title">Sportsbook</div>
+            <div class="portal-sub">Match Odds & Betting Lines</div>
+        </div>
+        <div class="portal-arrow">→</div>
+    </a>
 
+    <a href="props.html" class="portal-box">
+        <div class="portal-left">
+            <div class="portal-title">Player Props</div>
+            <div class="portal-sub">Ratings, Karma & Match Props</div>
+        </div>
+        <div class="portal-arrow">→</div>
+    </a>
 
+    <a href="parlays.html" class="portal-box">
+        <div class="portal-left">
+            <div class="portal-title">Parlays</div>
+            <div class="portal-sub">Build Multi-Bet Tickets</div>
+        </div>
+        <div class="portal-arrow">→</div>
+    </a>
 
-<a href="standings.html" class="portal-box">
-  <div class="portal-left">
-    <div class="portal-title">Standings</div>
-    <div class="portal-sub">League Table & Rankings</div>
-  </div>
-  <div class="portal-arrow">→</div>
-</a>
+    <a href="leaderboard.html" class="portal-box">
+        <div class="portal-left">
+            <div class="portal-title">Leaderboard</div>
+            <div class="portal-sub">Top RAX Earners</div>
+        </div>
+        <div class="portal-arrow">→</div>
+    </a>
 
+    <a href="history.html" class="portal-box">
+        <div class="portal-left">
+            <div class="portal-title">Bet History</div>
+            <div class="portal-sub">Past Bets & Results</div>
+        </div>
+        <div class="portal-arrow">→</div>
+    </a>
 
-
-<a href="leaderboard.html" class="portal-box">
-  <div class="portal-left">
-    <div class="portal-title">Player Stats</div>
-    <div class="portal-sub">Stats & Leaderboards  </div>
-  </div>
-  <div class="portal-arrow">→</div>
-</a>
-<a href="roster.html" class="portal-box">
-  <div class="portal-left">
-    <div class="portal-title">Roster</div>
-    <div class="portal-sub">Players & GM's  </div>
-  </div>
-  <div class="portal-arrow">→</div>
-</a>
 </div>
 
 <div class="spacer"></div>
 
-
-
-
-
-<footer>Made by @chars1</footer>
+<footer>
+RKL Sportsbook • Powered By RAX • Made By @chars1
+</footer>
 
 </body>
 </html>
