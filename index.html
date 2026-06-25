@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RKL Sportsbook</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;700;800&display=swap" rel="stylesheet">
 
 <style>
 :root{
@@ -15,64 +14,37 @@
 --card:#11141d;
 --border:#1e2431;
 --accent:#e8ff3c;
---gold:#ffd95c;
---text:#f5f5f5;
+--text:#fff;
 --muted:#7f8598;
 }
 
-*{margin:0;padding:0;box-sizing:border-box;}
-
 body{
-font-family:'DM Sans',sans-serif;
-background:radial-gradient(circle at top center, rgba(232,255,60,.05), transparent 28%),
-linear-gradient(to bottom,var(--bg),var(--bg2));
+margin:0;
+font-family:DM Sans;
+background:linear-gradient(var(--bg),var(--bg2));
 color:var(--text);
-min-height:100vh;
-display:flex;
-flex-direction:column;
-align-items:center;
-padding:70px 18px 24px;
+padding:70px 18px;
 }
 
-body:before{
-content:'';
-position:fixed;
-inset:0;
-background-image:
-linear-gradient(rgba(255,255,255,.015) 1px, transparent 1px),
-linear-gradient(90deg, rgba(255,255,255,.015) 1px, transparent 1px);
-background-size:34px 34px;
-pointer-events:none;
-}
-
-/* ticker */
 .ticker{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:34px;
-display:flex;
-align-items:center;
+position:fixed;top:0;left:0;width:100%;
+height:34px;background:#11141d;
+border-bottom:1px solid #1e2431;
 overflow:hidden;
-background:rgba(17,20,29,.95);
-border-bottom:1px solid var(--border);
+display:flex;align-items:center;
 }
 
 .ticker-track{
-display:flex;
-gap:60px;
+display:flex;gap:60px;
 white-space:nowrap;
-padding-left:100%;
 animation:scroll 20s linear infinite;
+padding-left:100%;
 }
 
 .ticker-track span{
-font-size:11px;
-font-weight:700;
-letter-spacing:.16em;
-text-transform:uppercase;
 color:var(--accent);
+font-size:11px;
+font-weight:800;
 }
 
 @keyframes scroll{
@@ -80,79 +52,37 @@ color:var(--accent);
 100%{transform:translateX(-100%);}
 }
 
-.hero{
-text-align:center;
-margin-bottom:32px;
-}
-
-.hero-top{
-font-size:11px;
-letter-spacing:.35em;
-text-transform:uppercase;
-color:var(--gold);
-font-weight:800;
-}
-
-h1{
-font-family:'Bebas Neue',sans-serif;
-font-size:clamp(70px,12vw,110px);
-line-height:.95;
-}
-
+.hero{text-align:center;margin:30px 0;}
+h1{font-family:Bebas Neue;font-size:80px;margin:0;}
 h1 span{color:var(--accent);}
+.hero-sub{opacity:.6;font-size:12px;letter-spacing:.2em;}
 
-.hero-sub{
-font-size:12px;
-letter-spacing:.2em;
-text-transform:uppercase;
-color:var(--muted);
-margin-top:10px;
+.nav{
+max-width:420px;margin:auto;
+display:flex;flex-direction:column;gap:14px;
 }
 
-.nav-wrap{
-width:100%;
-max-width:430px;
-display:flex;
-flex-direction:column;
-gap:16px;
-}
-
-.portal-box{
-background:linear-gradient(to bottom, rgba(255,255,255,.015), rgba(255,255,255,.005));
+.card{
+background:var(--card);
 border:1px solid var(--border);
-border-radius:18px;
-padding:26px 22px;
-display:flex;
-justify-content:space-between;
+padding:20px;
+border-radius:14px;
 text-decoration:none;
-color:var(--text);
-transition:.2s;
+color:white;
+display:flex;justify-content:space-between;
 }
 
-.portal-box:hover{
-transform:translateY(-3px);
-border-color:rgba(232,255,60,.35);
-}
+.card:hover{border-color:var(--accent);}
+.title{font-family:Bebas Neue;font-size:32px;}
+.sub{font-size:11px;opacity:.6;text-transform:uppercase;}
 
-.portal-title{
-font-family:'Bebas Neue',sans-serif;
-font-size:34px;
-}
-
-.portal-sub{
-font-size:11px;
-color:var(--muted);
-text-transform:uppercase;
-letter-spacing:.14em;
-}
-
-.portal-arrow{color:var(--accent);font-size:22px;}
-
-footer{
-margin-top:30px;
+#profileBox{
+position:fixed;top:45px;right:10px;
+background:#11141d;
+padding:10px;border-radius:10px;
+border:1px solid #1e2431;
 font-size:12px;
-letter-spacing:.15em;
-color:var(--muted);
+z-index:9999;
 }
 </style>
 </head>
@@ -161,56 +91,59 @@ color:var(--muted);
 
 <div class="ticker">
 <div class="ticker-track">
-<span>🔥 Matchday Bets Now Live</span>
-<span>📊 Player Props Updated Daily</span>
-<span>🏆 RKL Leaderboards Active</span>
-<span>💰 Build Your Parlays</span>
+<span>🔥 RKL Betting Live</span>
+<span>📊 Player Props Updated</span>
+<span>💰 Parlays Available</span>
 </div>
 </div>
 
+<div id="profileBox">
+<button onclick="login()">Profile</button>
+<div id="info"></div>
+</div>
+
 <div class="hero">
-<div class="hero-top">Official RKL Sportsbook</div>
 <h1>RKL <span>Sportsbook</span></h1>
 <div class="hero-sub">Bet Matchups • Props • Parlays</div>
 </div>
 
-<div class="nav-wrap">
-
-<a href="bets.html" class="portal-box">
+<div class="nav">
+<a class="card" href="bets.html">
 <div>
-<div class="portal-title">Bets</div>
-<div class="portal-sub">Matchups & Player Props</div>
+<div class="title">Bets</div>
+<div class="sub">Matchups & Lines</div>
 </div>
-<div class="portal-arrow">→</div>
+<div>→</div>
 </a>
 
-<a href="props.html" class="portal-box">
+<a class="card" href="admin.html">
 <div>
-<div class="portal-title">Player Props</div>
-<div class="portal-sub">Over / Under Lines</div>
+<div class="title">Admin</div>
+<div class="sub">Deposit Approvals</div>
 </div>
-<div class="portal-arrow">→</div>
+<div>→</div>
 </a>
-
-<a href="parlays.html" class="portal-box">
-<div>
-<div class="portal-title">Parlays</div>
-<div class="portal-sub">Multi-Bet Builder</div>
-</div>
-<div class="portal-arrow">→</div>
-</a>
-
-<a href="leaderboard.html" class="portal-box">
-<div>
-<div class="portal-title">Leaderboard</div>
-<div class="portal-sub">Top RAX Players</div>
-</div>
-<div class="portal-arrow">→</div>
-</a>
-
 </div>
 
-<footer>RKL Sportsbook • Made by @chars1</footer>
+<script>
+let user = JSON.parse(localStorage.getItem("rklUser")) || null;
+
+function login(){
+let u = prompt("Username");
+let p = prompt("Password");
+
+user = {username:u,password:p,wallet:user?.wallet||0,pending:user?.pending||0};
+localStorage.setItem("rklUser",JSON.stringify(user));
+render();
+}
+
+function render(){
+document.getElementById("info").innerHTML =
+user ? `@${user.username}<br>${user.wallet} RAX` : "Not logged in";
+}
+
+render();
+</script>
 
 </body>
 </html>
